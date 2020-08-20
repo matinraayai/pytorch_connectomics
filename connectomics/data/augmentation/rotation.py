@@ -2,6 +2,7 @@ import cv2
 import numpy as np
 from .augmentor import DataAugment
 
+
 class Rotate(DataAugment):
     """
     Continuous rotatation of the `xy`-plane.
@@ -28,7 +29,7 @@ class Rotate(DataAugment):
         transformedimgs = np.copy(imgs)
         for z in range(transformedimgs.shape[-3]):
             img = transformedimgs[z, :, :]
-            dst = cv2.warpAffine(img, M ,(height,width), 1.0, flags=interpolation, borderMode=self.border_mode)
+            dst = cv2.warpAffine(img, M, (height, width), 1.0, flags=interpolation, borderMode=self.border_mode)
             transformedimgs[z, :, :] = dst
 
         return transformedimgs
@@ -43,8 +44,7 @@ class Rotate(DataAugment):
         height, width = image.shape[-2:]
         M = cv2.getRotationMatrix2D((height/2, width/2), random_state.rand()*360.0, 1)
 
-        output = {}
-        output['image'] = self.rotate(image, M, self.image_interpolation)
+        output = {'image': self.rotate(image, M, self.image_interpolation)}
         if label is not None:
             output['label'] = self.rotate(label, M, self.label_interpolation)
 
