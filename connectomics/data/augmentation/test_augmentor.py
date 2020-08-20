@@ -2,6 +2,7 @@ import numpy as np
 import itertools
 import torch
 
+
 class TestAugmentor(object):
     """Test-time augmentor. 
     
