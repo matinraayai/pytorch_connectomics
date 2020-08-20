@@ -1,8 +1,7 @@
 import random
 import numpy as np
-from numpy.core.numeric import indices
 import torch
-from itertools import combinations
+
 
 class MixupAugmentor(object):
     """Mixup augmentor (experimental). 
@@ -48,18 +47,20 @@ class MixupAugmentor(object):
 
         return volume
 
+
 def test():
     mixup_augmentor = MixupAugmentor(num_aug=2)
-    volume = np.ones((4,1,8,32,32))
+    volume = np.ones((4, 1, 8, 32, 32))
     volume = mixup_augmentor(volume)
     print('Tested numpy.ndarray.')
 
-    volume = torch.ones(4,1,8,32,32)
+    volume = torch.ones(4, 1, 8, 32, 32)
     volume = mixup_augmentor(volume)
     print('Tested torch.Tensor.')
 
-    volume = [1,2,3,4,5]
+    volume = [1, 2, 3, 4, 5]
     volume = mixup_augmentor(volume)
+
 
 if __name__ == '__main__':
     test()
