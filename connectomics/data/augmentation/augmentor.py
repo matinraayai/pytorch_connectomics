@@ -1,7 +1,8 @@
 import numpy as np
+from abc import ABC, abstractmethod
 
 
-class DataAugment(object):
+class DataAugment(ABC):
     """
     DataAugment interface.
 
@@ -20,6 +21,7 @@ class DataAugment(object):
             'ratio': np.array([1.0, 1.0, 1.0]),
             'add': np.array([0, 0, 0])}
 
+    @abstractmethod
     def set_params(self):
         """
         Calculate the appropriate sample size with data augmentation.
@@ -31,6 +33,7 @@ class DataAugment(object):
         """
         raise NotImplementedError
 
+    @abstractmethod
     def __call__(self, data, random_state=None):
         """
         Apply the data augmentation.
