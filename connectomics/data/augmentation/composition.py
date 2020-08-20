@@ -1,10 +1,10 @@
 from __future__ import division
 
-import warnings
 import numpy as np
 
 from skimage.morphology import dilation, erosion
 from skimage.filters import gaussian
+
 
 class Compose(object):
     """Composing a list of data transforms. 
@@ -31,12 +31,12 @@ class Compose(object):
         >>> augmented = augmentor(data)
         >>> out_input, out_label = augmented['image'], augmented['label']
     """
-    def __init__(self, 
-                 transforms, 
-                 input_size = (8,256,256),
-                 smooth = True,
-                 keep_uncropped = False,
-                 keep_non_smoothed = False):
+    def __init__(self,
+                 transforms,
+                 input_size=(8, 256, 256),
+                 smooth=True,
+                 keep_uncropped=False,
+                 keep_non_smoothed=False):
 
         self.transforms = transforms
         self.set_flip()
@@ -48,13 +48,13 @@ class Compose(object):
         self.smooth = smooth
         self.keep_uncropped = keep_uncropped
         self.keep_non_smoothed = keep_non_smoothed
+        self.flip_aug = None
 
     def set_flip(self):
         # Some data augmentation techniques (e.g., elastic wrap, missing parts) are designed only
         # for x-y planes while some (e.g., missing section, mis-alignment) are only applied along
         # the z axis. Thus we let flip augmentation the last one to be applied otherwise shape mis-match
         # can happen when do_ztrans is 1 for cubic input volumes.
-        self.flip_aug = None
         flip_idx = None
 
         for i, t in enumerate(self.transforms):
@@ -71,22 +71,23 @@ class Compose(object):
             self.sample_size = self.sample_size + (2 * np.array(t.sample_params['add']))
         print('Sample size required for the augmentor:', self.sample_size)
 
-    def smooth_edge(self, data):
+    @staticmethod
+    def smooth_edge(data):
         smoothed_label = data['label'].copy()
 
         for z in range(smoothed_label.shape[0]):
             temp = smoothed_label[z].copy()
             for idx in np.unique(temp):
                 if idx != 0:
-                    binary = (temp==idx).astype(np.uint8)
+                    binary = (temp == idx).astype(np.uint8)
                     for _ in range(2):
                         binary = dilation(binary)
                         binary = gaussian(binary, sigma=2, preserve_range=True)
                         binary = dilation(binary)
                         binary = (binary > 0.8).astype(np.uint8)
             
-                    temp[np.where(temp==idx)]=0
-                    temp[np.where(binary==1)]=idx
+                    temp[np.where(temp == idx)] = 0
+                    temp[np.where(binary == 1)] = idx
             smoothed_label[z] = temp
 
         data['label'] = smoothed_label
@@ -102,19 +103,19 @@ class Compose(object):
         
         # whether need to crop z or not (missing section augmentation)
         if label.shape[0] > self.input_size[0]:
-            z_low = np.random.choice(label.shape[0]-self.input_size[0]+1, 1)[0]
+            z_low = np.random.choice(label.shape[0] - self.input_size[0] + 1, 1)[0]
         else:
             z_low = 0
         z_high = z_low + self.input_size[0] 
         z_low, z_high = int(z_low), int(z_high)
 
-        if margin==0: # no need for x,y crop
+        if margin == 0:  # no need for x,y crop
             return {'image': image[z_low:z_high], 'label': label[z_low:z_high]}
         else:    
             low = margin
             high = margin + self.input_size[1]
             if image.ndim == 3:
-                if self.keep_uncropped == True:
+                if self.keep_uncropped:
                     return {'image': image[z_low:z_high, low:high, low:high],
                             'label': label[z_low:z_high, low:high, low:high],
                             'image_uncropped': image,
@@ -123,7 +124,7 @@ class Compose(object):
                     return {'image': image[z_low:z_high, low:high, low:high],
                             'label': label[z_low:z_high, low:high, low:high]}
             else:
-                if self.keep_uncropped == True:
+                if self.keep_uncropped:
                     return {'image': image[:, z_low:z_high, low:high, low:high],
                             'label': label[z_low:z_high, low:high, low:high],
                             'image_uncropped': image,
@@ -133,7 +134,7 @@ class Compose(object):
                             'label': label[z_low:z_high, low:high, low:high]}                                        
 
     def __call__(self, data, random_state=np.random.RandomState()):
-        # According thie blog post (https://www.sicara.ai/blog/2019-01-28-how-computer-generate-random-numbers):
+        # According this blog post (https://www.sicara.ai/blog/2019-01-28-how-computer-generate-random-numbers):
         # we need to be careful when using numpy.random in multiprocess application as it can always generate the 
         # same output for different processes. Therefore we use np.random.RandomState().
         data['image'] = data['image'].astype(np.float32)
@@ -158,5 +159,5 @@ class Compose(object):
             data['non_smoothed'] = data['label']
 
         if self.smooth:
-            data = self.smooth_edge(data)
+            data = self.smooth_edge()
         return data
