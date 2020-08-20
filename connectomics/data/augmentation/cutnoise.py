@@ -1,6 +1,7 @@
 import numpy as np
 from .augmentor import DataAugment
 
+
 class CutNoise(DataAugment):
     """3D CutNoise data augmentation.
 
