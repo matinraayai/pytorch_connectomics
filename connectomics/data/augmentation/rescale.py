@@ -1,8 +1,8 @@
 from __future__ import division
-import cv2
 import numpy as np
 from .augmentor import DataAugment
 from skimage.transform import resize
+
 
 class Rescale(DataAugment):
     """
@@ -83,7 +83,7 @@ class Rescale(DataAugment):
             sf_x = self.random_scale(random_state)
             sf_y = self.random_scale(random_state)
 
-        output = {}
-        output['image'], output['label'] = self.apply_rescale(image, label, sf_x, sf_y, random_state)
+        output = {'image': (self.apply_rescale(image, label, sf_x, sf_y, random_state))[0],
+                  'label': (self.apply_rescale(image, label, sf_x, sf_y, random_state))[1]}
 
         return output
