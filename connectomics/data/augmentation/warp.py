@@ -4,6 +4,7 @@ from scipy.ndimage.filters import gaussian_filter
 
 from .augmentor import DataAugment
 
+
 class Elastic(DataAugment):
     """Elastic deformation of images as described in [Simard2003]_ (with modifications).
     The implementation is based on https://gist.github.com/erniejunior/601cdf56d2b424757de5.
@@ -41,7 +42,7 @@ class Elastic(DataAugment):
         else:
             image = data['image']  
 
-        height, width = image.shape[-2:] # (c, z, y, x)
+        height, width = image.shape[-2:]  # (c, z, y, x)
 
         dx = np.float32(gaussian_filter((random_state.rand(height, width) * 2 - 1), self.sigma) * self.alpha)
         dy = np.float32(gaussian_filter((random_state.rand(height, width) * 2 - 1), self.sigma) * self.alpha)
@@ -56,17 +57,18 @@ class Elastic(DataAugment):
         for i in range(image.shape[-3]):
             if image.ndim == 3:
                 transformed_image.append(cv2.remap(image[i], mapx, mapy, 
-                                    self.image_interpolation, borderMode=self.border_mode))     
+                                                   self.image_interpolation, borderMode=self.border_mode))
             else:
                 temp = [cv2.remap(image[channel, i], mapx, mapy, self.image_interpolation, 
-                        borderMode=self.border_mode) for channel in range(image.shape[0])]     
+                                  borderMode=self.border_mode) for channel in range(image.shape[0])]
                 transformed_image.append(np.stack(temp, 0))          
             if 'label' in data and data['label'] is not None:
-                transformed_label.append(cv2.remap(label[i], mapx, mapy, self.label_interpolation, borderMode=self.border_mode))
+                transformed_label.append(cv2.remap(label[i], mapx, mapy,
+                                                   self.label_interpolation, borderMode=self.border_mode))
 
-        if image.ndim == 3: # (z,y,x)
+        if image.ndim == 3:  # (z,y,x)
             transformed_image = np.stack(transformed_image, 0)
-        else: # (c,z,y,x)
+        else:  # (c,z,y,x)
             transformed_image = np.stack(transformed_image, 1)
 
         transformed_label = np.stack(transformed_label, 0)
