@@ -335,11 +335,13 @@ _C.INFERENCE.SAMPLES_PER_BATCH = 32
 # Util functions
 #######################################################
 
+
 def get_cfg_defaults():
     """Get a yacs CfgNode object with default values for my_project."""
     # Return a clone so that the defaults will not be altered
     # This is for the "local variable" use pattern
     return _C.clone()
+
 
 def update_inference_cfg(cfg):
     r"""Update configurations (cfg) when running mode is inference.
@@ -362,6 +364,7 @@ def update_inference_cfg(cfg):
         cfg.MODEL.INPUT_SIZE = cfg.INFERENCE.INPUT_SIZE
     if len(cfg.INFERENCE.OUTPUT_SIZE) != 0:
         cfg.MODEL.OUTPUT_SIZE = cfg.INFERENCE.OUTPUT_SIZE
+
 
 def save_all_cfg(cfg, output_dir):
     """Save configs in the output directory."""
