@@ -1,5 +1,6 @@
 import numpy as np
 
+
 class DataAugment(object):
     """
     DataAugment interface.
@@ -13,7 +14,7 @@ class DataAugment(object):
     All the real data augmentations should be a subclass of this class.
     """
     def __init__(self, p=0.5):
-        assert p >= 0.0 and p <=1.0
+        assert 0.0 <= p <= 1.0
         self.p = p
         self.sample_params = {
             'ratio': np.array([1.0, 1.0, 1.0]),
