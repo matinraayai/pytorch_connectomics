@@ -2,6 +2,7 @@ import numpy as np
 from .augmentor import DataAugment
 from skimage.transform import resize
 
+
 class CutBlur(DataAugment):
     """3D CutBlur data augmentation, adapted from https://arxiv.org/abs/2004.00448.
 
@@ -50,22 +51,21 @@ class CutBlur(DataAugment):
 
         down_ratio = random_state.uniform(self.down_ratio_min, self.down_ratio_max)
         if zdim > 1 and self.downsample_z:
-            out_shape = np.array(temp.shape) /  down_ratio
+            out_shape = np.array(temp.shape) / down_ratio
         else:
-            out_shape = np.array(temp.shape) /  np.array([1, down_ratio, down_ratio])
+            out_shape = np.array(temp.shape) / np.array([1, down_ratio, down_ratio])
 
         out_shape = out_shape.astype(int)
         downsampled = resize(temp, out_shape, order=1, mode='reflect', 
                              clip=True, preserve_range=True, anti_aliasing=True)
         upsampled = resize(downsampled, temp.shape, order=0, mode='reflect', 
-                             clip=True, preserve_range=True, anti_aliasing=False)
+                           clip=True, preserve_range=True, anti_aliasing=False)
 
         if zdim == 1:
             images[:, yl:yh, xl:xh] = upsampled
         else:
             images[zl:zh, yl:yh, xl:xh] = upsampled
         return images, labels
-
 
     def random_region(self, vol_len, random_state):
         cuboid_len = int(self.length_ratio * vol_len)
