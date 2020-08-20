@@ -1,8 +1,8 @@
 import cv2
-import math
 import random
 import numpy as np
 from .augmentor import DataAugment
+
 
 class MotionBlur(DataAugment):
     """Motion blur data augmentation of image stacks.
@@ -28,9 +28,9 @@ class MotionBlur(DataAugment):
 
         # generating the kernel
         kernel_motion_blur = np.zeros((self.size, self.size))
-        if random.random() > 0.5: # horizontal kernel
+        if random.random() > 0.5:  # horizontal kernel
             kernel_motion_blur[int((self.size-1)/2), :] = np.ones(self.size)
-        else: # vertical kernel
+        else:  # vertical kernel
             kernel_motion_blur[:, int((self.size-1)/2)] = np.ones(self.size)
         kernel_motion_blur = kernel_motion_blur / self.size
 
