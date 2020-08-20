@@ -69,12 +69,6 @@ def _get_input(cfg, mode='train'):
 def create_dataset(cfg, augmentor, mode='train'):
     """
     Creates a Pytorch dataset for training and inference using the configuration and augmentor.
-    Args:
-        cfg: YACS Configuration object specifications
-        augmentor:
-        mode: Either 'train' or 'test'
-    Return:
-        a Pytorch Dataset
     """
     assert mode in ['train', 'test']
 
