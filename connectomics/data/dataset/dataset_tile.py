@@ -47,7 +47,6 @@ class TileDataset(torch.utils.data.Dataset):
         self.target_opt = target_opt
         self.weight_opt = weight_opt
 
-        assert mode in ('train', 'test')
         self.mode = mode
         self.do_2d = do_2d
         self.iter_num = iter_num
