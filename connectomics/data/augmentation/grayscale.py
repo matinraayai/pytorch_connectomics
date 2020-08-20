@@ -1,6 +1,7 @@
 import numpy as np
 from .augmentor import DataAugment
 
+
 class Grayscale(DataAugment):
     """Grayscale intensity augmentation, adapted from ELEKTRONN (http://elektronn.org/).
 
@@ -19,7 +20,7 @@ class Grayscale(DataAugment):
         """
         super(Grayscale, self).__init__(p=p)
         self._set_mode(mode)
-        self.CONTRAST_FACTOR   = contrast_factor
+        self.CONTRAST_FACTOR = contrast_factor
         self.BRIGHTNESS_FACTOR = brightness_factor
 
     def set_params(self):
@@ -27,7 +28,6 @@ class Grayscale(DataAugment):
         pass
 
     def __call__(self, data, random_state=np.random):
-
         if self.mode == 'mix':
             mode = '3D' if random_state.rand() > 0.5 else '2D'
         else:
@@ -50,10 +50,10 @@ class Grayscale(DataAugment):
 
         for z in range(transformedimgs.shape[-3]):
             img = transformedimgs[z, :, :]
-            img *= 1 + (ran[z*3] - 0.5)*self.CONTRAST_FACTOR
-            img += (ran[z*3+1] - 0.5)*self.BRIGHTNESS_FACTOR
+            img *= 1 + (ran[z * 3] - 0.5) * self.CONTRAST_FACTOR
+            img += (ran[z * 3 + 1] - 0.5) * self.BRIGHTNESS_FACTOR
             img = np.clip(img, 0, 1)
-            img **= 2.0**(ran[z*3+2]*2 - 1)
+            img **= 2.0 ** (ran[z * 3 + 2] * 2 - 1)
             transformedimgs[z, :, :] = img
 
         data['image'] = transformedimgs
@@ -81,7 +81,7 @@ class Grayscale(DataAugment):
         """
         imgs = data['image']
         transformedimgs = np.copy(imgs)
-        transformedimgs = 1.0-transformedimgs
+        transformedimgs = 1.0 - transformedimgs
         transformedimgs = np.clip(transformedimgs, 0, 1)
 
         data['image'] = transformedimgs
@@ -93,5 +93,5 @@ class Grayscale(DataAugment):
 
     def _set_mode(self, mode):
         """Set 2D/3D/mix greyscale value augmentation mode."""
-        assert mode=='2D' or mode=='3D' or mode=='mix'
+        assert mode == '2D' or mode == '3D' or mode == 'mix'
         self.mode = mode
