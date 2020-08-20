@@ -1,12 +1,11 @@
 import numpy as np
 from .augmentor import DataAugment
 
-from scipy.ndimage.interpolation import map_coordinates, zoom
-import numbers
+from scipy.ndimage.interpolation import map_coordinates
 from skimage.draw import line
-from scipy.ndimage.filters import gaussian_filter
 from scipy.ndimage.measurements import label
 from scipy.ndimage.morphology import binary_dilation
+
 
 class MissingParts(DataAugment):
     """Missing-parts augmentation of image stacks.
@@ -34,7 +33,7 @@ class MissingParts(DataAugment):
     def prepare_deform_slice(self, slice_shape, random_state):
         # grow slice shape by 2 x deformation strength
         grow_by = 2 * self.deformation_strength
-        #print ('sliceshape: '+str(slice_shape[0])+' growby: '+str(grow_by)+ ' strength: '+str(deformation_strength))
+        # print ('sliceshape: '+str(slice_shape[0])+' growby: '+str(grow_by)+ ' strength: '+str(deformation_strength))
         shape = (slice_shape[0] + grow_by, slice_shape[1] + grow_by)
         # randomly choose fixed x or fixed y with p = 1/2
         fixed_x = random_state.rand() < 0.5
@@ -45,8 +44,7 @@ class MissingParts(DataAugment):
             x0, y0 = np.random.randint(1, shape[0] - 2), 0
             x1, y1 = np.random.randint(1, shape[0] - 2), shape[1] - 1
 
-        ## generate the mask of the line that should be blacked out
-        #print (shape)
+        # generate the mask of the line that should be blacked out
         line_mask = np.zeros(shape, dtype='bool')
         rr, cc = line(x0, y0, x1, y1)
         line_mask[rr, cc] = 1
@@ -81,7 +79,7 @@ class MissingParts(DataAugment):
         flow_x, flow_y = (x + flow_x).reshape(-1, 1), (y + flow_y).reshape(-1, 1)
 
         # dilate the line mask
-        line_mask = binary_dilation(line_mask, iterations=self.iterations) #default=10
+        line_mask = binary_dilation(line_mask, iterations=self.iterations)  # default=10
         
         return flow_x, flow_y, line_mask
 
@@ -90,9 +88,11 @@ class MissingParts(DataAugment):
         section = image2d.squeeze()
         mean = section.mean()
         shape = section.shape
-        #interpolation=3
-        section = map_coordinates(section, (flow_y, flow_x), mode='constant', 
-                        order=3).reshape(int(flow_x.shape[0]**0.5),int(flow_x.shape[0]**0.5))
+        # interpolation=3
+        section = map_coordinates(section,
+                                  (flow_y, flow_x),
+                                  mode='constant', order=3).reshape(int(flow_x.shape[0]**0.5),
+                                                                    int(flow_x.shape[0]**0.5))
         section = np.clip(section, 0., 1.)
         section[line_mask] = mean
         return section 
@@ -100,11 +100,11 @@ class MissingParts(DataAugment):
     def apply_deform(self, imgs, random_state):
         transformedimgs = np.copy(imgs)
         sectionsnum = imgs.shape[0]
-        i=0
+        i = 0
         while i < sectionsnum:
             if random_state.rand() < self.p:
                 transformedimgs[i] = self.deform_2d(imgs[i], random_state)
-                i += 2 # only one deformed image in any consecutive 3 images
+                i += 2  # only one deformed image in any consecutive 3 images
             i += 1
         return transformedimgs
 
