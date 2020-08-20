@@ -2,6 +2,7 @@ import math
 import numpy as np
 from .augmentor import DataAugment
 
+
 class MissingSection(DataAugment):
     """Missing-section augmentation of image stacks.
     
