@@ -1,6 +1,6 @@
-import random
 import numpy as np
 from .augmentor import DataAugment
+
 
 class Flip(DataAugment):
     """
@@ -21,8 +21,8 @@ class Flip(DataAugment):
         pass
 
     def flip_and_swap(self, data, rule):
-        assert data.ndim==3 or data.ndim==4
-        if data.ndim == 3: # 3-channel input in z,y,x
+        assert data.ndim == 3 or data.ndim == 4
+        if data.ndim == 3:  # 3-channel input in z,y,x
             # z reflection.
             if rule[0]:
                 data = data[::-1, :, :]
@@ -36,9 +36,9 @@ class Flip(DataAugment):
             if rule[3]:
                 data = data.transpose(0, 2, 1)
             # Transpose in xz.
-            if self.do_ztrans==1 and rule[4]:
+            if self.do_ztrans == 1 and rule[4]:
                 data = data.transpose(2, 1, 0)
-        else: # 4-channel input in c,z,y,x
+        else:  # 4-channel input in c,z,y,x
             # z reflection.
             if rule[0]:
                 data = data[:, ::-1, :, :]
@@ -52,7 +52,7 @@ class Flip(DataAugment):
             if rule[3]:
                 data = data.transpose(0, 1, 3, 2)
             # Transpose in xz.
-            if self.do_ztrans==1 and rule[4]:
+            if self.do_ztrans == 1 and rule[4]:
                 data = data.transpose(0, 3, 2, 1)
         return data
     
