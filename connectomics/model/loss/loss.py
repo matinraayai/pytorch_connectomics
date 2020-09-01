@@ -1,5 +1,7 @@
 from __future__ import print_function, division
 
+from abc import ABC
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -8,7 +10,8 @@ import torch.nn.functional as F
 # 0. Main loss functions
 #######################################################
 
-class JaccardLoss(nn.Module):
+
+class JaccardLoss(nn.Module, ABC):
     """Jaccard loss.
     """
     # binary case

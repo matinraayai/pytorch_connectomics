@@ -15,16 +15,16 @@ class unet_residual_2d(nn.Module):
             [nn.Sequential(
             conv2d_norm_act(in_planes=filters[x], out_planes=filters[x+1], 
                           kernel_size=(3,3), stride=1, padding=(1,1), pad_mode=pad_mode, norm_mode=norm_mode, act_mode=act_mode),
-            residual_block_2d_c2(filters[x+1], filters[x+1], projection=True, pad_mode=pad_mode, norm_mode=norm_mode, act_mode=act_mode),
-            residual_block_2d_c2(filters[x+1], filters[x+1], projection=False, pad_mode=pad_mode, norm_mode=norm_mode, act_mode=act_mode),
-            residual_block_2d_c2(filters[x+1], filters[x+1], projection=True, pad_mode=pad_mode, norm_mode=norm_mode, act_mode=act_mode)
+            ResidualBlock2DC2(filters[x + 1], filters[x + 1], projection=True, pad_mode=pad_mode, norm_mode=norm_mode, act_mode=act_mode),
+            ResidualBlock2DC2(filters[x + 1], filters[x + 1], projection=False, pad_mode=pad_mode, norm_mode=norm_mode, act_mode=act_mode),
+            ResidualBlock2DC2(filters[x + 1], filters[x + 1], projection=True, pad_mode=pad_mode, norm_mode=norm_mode, act_mode=act_mode)
             ) for x in range(self.depth)])
 
         # Center Block
         self.center = nn.Sequential(
-            bottleneck_dilated_2d(filters[-2], filters[-1], projection=True),
-            bottleneck_dilated_2d(filters[-1], filters[-1], projection=False),
-            bottleneck_dilated_2d(filters[-1], filters[-1], projection=True)
+            BottleneckDilated2D(filters[-2], filters[-1], projection=True),
+            BottleneckDilated2D(filters[-1], filters[-1], projection=False),
+            BottleneckDilated2D(filters[-1], filters[-1], projection=True)
         )
 
         # Decoding Path
@@ -32,15 +32,15 @@ class unet_residual_2d(nn.Module):
             [nn.Sequential(
                 conv2d_norm_act(in_planes=filters[x+1], out_planes=filters[x+1], 
                           kernel_size=(3,3), stride=1, padding=(1,1), pad_mode=pad_mode, norm_mode=norm_mode, act_mode=act_mode),
-            residual_block_2d_c2(filters[x+1], filters[x+1], projection=True, pad_mode=pad_mode, norm_mode=norm_mode, act_mode=act_mode),
-            residual_block_2d_c2(filters[x+1], filters[x+1], projection=False, pad_mode=pad_mode, norm_mode=norm_mode, act_mode=act_mode),
-            residual_block_2d_c2(filters[x+1], filters[x+1], projection=True, pad_mode=pad_mode, norm_mode=norm_mode, act_mode=act_mode)
+            ResidualBlock2DC2(filters[x + 1], filters[x + 1], projection=True, pad_mode=pad_mode, norm_mode=norm_mode, act_mode=act_mode),
+            ResidualBlock2DC2(filters[x + 1], filters[x + 1], projection=False, pad_mode=pad_mode, norm_mode=norm_mode, act_mode=act_mode),
+            ResidualBlock2DC2(filters[x + 1], filters[x + 1], projection=True, pad_mode=pad_mode, norm_mode=norm_mode, act_mode=act_mode)
             ) for x in range(self.depth)])
 
         # down & up sampling
         self.downS = nn.ModuleList([nn.MaxPool2d(kernel_size=(2, 2), stride=(2, 2)) for x in range(self.depth)])
-        head_pred = [residual_block_2d_c2(filters[1], filters[1], projection=False)
-                                for x in range(head_depth-1)] + \
+        head_pred = [ResidualBlock2DC2(filters[1], filters[1], projection=False)
+                     for x in range(head_depth-1)] + \
                     [conv2d_norm_act(filters[1], out_channel, kernel_size=(1, 1), padding=0, norm_mode=norm_mode)]
         
         self.upS = nn.ModuleList( [nn.Sequential(*head_pred)] + \

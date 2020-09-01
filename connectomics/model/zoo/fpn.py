@@ -13,33 +13,33 @@ class fpn(nn.Module):
         
         # layers
         self.layer1 = nn.Sequential(
-            residual_block_2d(in_channel, filters[0], projection=True),
-            residual_block_2d(filters[0], filters[0], projection=False),
-            residual_block_2d(filters[0], filters[0], projection=True),
+            ResidualBlock2D(in_channel, filters[0], projection=True),
+            ResidualBlock2D(filters[0], filters[0], projection=False),
+            ResidualBlock2D(filters[0], filters[0], projection=True),
             squeeze_excitation_3d(channel=filters[0], channel_reduction=2, spatial_reduction=16)
         )
         self.layer2 = nn.Sequential(
-            residual_block_2d(filters[0], filters[1], projection=True),
-            residual_block_2d(filters[1], filters[1], projection=False),
-            residual_block_2d(filters[1], filters[1], projection=True),
+            ResidualBlock2D(filters[0], filters[1], projection=True),
+            ResidualBlock2D(filters[1], filters[1], projection=False),
+            ResidualBlock2D(filters[1], filters[1], projection=True),
             squeeze_excitation_3d(channel=filters[1], channel_reduction=4, spatial_reduction=8)
         )
         self.layer3 = nn.Sequential(
-            residual_block_3d(filters[1], filters[2], projection=True),
-            residual_block_3d(filters[2], filters[2], projection=False),
-            residual_block_3d(filters[2], filters[2], projection=True),
+            ResidualBlock3D(filters[1], filters[2], projection=True),
+            ResidualBlock3D(filters[2], filters[2], projection=False),
+            ResidualBlock3D(filters[2], filters[2], projection=True),
             squeeze_excitation_3d(channel=filters[2], channel_reduction=8, spatial_reduction=4)
         )
         self.layer4 = nn.Sequential(
-            bottleneck_dilated_3d(filters[2], filters[3], projection=True),
-            bottleneck_dilated_3d(filters[3], filters[3], projection=False),
-            bottleneck_dilated_3d(filters[3], filters[3], projection=True),
+            BottleneckDilated3D(filters[2], filters[3], projection=True),
+            BottleneckDilated3D(filters[3], filters[3], projection=False),
+            BottleneckDilated3D(filters[3], filters[3], projection=True),
             squeeze_excitation_3d(channel=filters[3], channel_reduction=16, spatial_reduction=2, z_reduction=2)
         )
         self.layer5 = nn.Sequential(
-            bottleneck_dilated_3d(filters[3], filters[4], projection=True),
-            bottleneck_dilated_3d(filters[4], filters[4], projection=False),
-            bottleneck_dilated_3d(filters[4], filters[4], projection=True),
+            BottleneckDilated3D(filters[3], filters[4], projection=True),
+            BottleneckDilated3D(filters[4], filters[4], projection=False),
+            BottleneckDilated3D(filters[4], filters[4], projection=True),
             squeeze_excitation_3d(channel=filters[3], channel_reduction=16, spatial_reduction=2, z_reduction=2)
         )
 

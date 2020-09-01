@@ -10,8 +10,9 @@ import numpy as np
 from .solver import *
 from connectomics.model import *
 from connectomics.data.augmentation import build_train_augmentor, TestAugmentor
-from connectomics.data.dataset import build_dataloader, get_dataset
-from connectomics.data.utils import build_blending_matrix, writeh5
+from connectomics.data.dataset import create_dataloader, create_dataset
+from connectomics.data.utils import build_blending_matrix, write_h5
+
 
 class Trainer(object):
     r"""Trainer
@@ -45,7 +46,7 @@ class Trainer(object):
             self.augmentor = None
 
         if cfg.DATASET.DO_CHUNK_TITLE == 0:
-            self.dataloader = build_dataloader(self.cfg, self.augmentor, self.mode)
+            self.dataloader = create_dataloader(self.cfg, self.augmentor, self.mode)
             self.dataloader = iter(self.dataloader)
         else:
             self.dataset = None
@@ -53,7 +54,6 @@ class Trainer(object):
 
         self.total_iter_nums = self.cfg.SOLVER.ITERATION_TOTAL - self.start_iter
         self.inference_output_name = self.cfg.INFERENCE.OUTPUT_NAME
-
 
     def train(self):
         r"""Training function.
@@ -124,7 +124,7 @@ class Trainer(object):
                         self.cfg.DATASET.PAD_SIZE[1],self.cfg.DATASET.PAD_SIZE[1],
                         self.cfg.DATASET.PAD_SIZE[2],self.cfg.DATASET.PAD_SIZE[2]]
         
-        if ("super" in self.cfg.MODEL.ARCHITECTURE):
+        if "super" in self.cfg.MODEL.ARCHITECTURE:
             output_size = np.array(self.dataloader._dataset.volume_size)*np.array(self.cfg.DATASET.SCALE_FACTOR).tolist()
             result = [np.stack([np.zeros(x, dtype=np.float32) for _ in range(NUM_OUT)]) for x in output_size]
             weight = [np.zeros(x, dtype=np.float32) for x in output_size]
@@ -199,8 +199,8 @@ class Trainer(object):
             return result
         else:
             print('Saving as h5...')
-            writeh5(os.path.join(self.output_dir, self.inference_output_name), result,
-                    ['vol%d'%(x) for x in range(len(result))])
+            write_h5(os.path.join(self.output_dir, self.inference_output_name), result,
+                     ['vol%d'%(x) for x in range(len(result))])
             print('Inference is done!')
 
     # -----------------------------------------------------------------------------
@@ -248,13 +248,13 @@ class Trainer(object):
                 self.start_iter = checkpoint['iteration']
 
     def run_chunk(self, mode):
-        self.dataset = get_dataset(self.cfg, self.augmentor, mode)
+        self.dataset = create_dataset(self.cfg, self.augmentor, mode)
         if mode == 'train':
             num_chunk = self.total_iter_nums // self.cfg.DATASET.DATA_CHUNK_ITER
             self.total_iter_nums = self.cfg.DATASET.DATA_CHUNK_ITER
             for chunk in range(num_chunk):
-                self.dataset.updatechunk()
-                self.dataloader = build_dataloader(self.cfg, self.augmentor, mode, dataset=self.dataset.dataset)
+                self.dataset.update_chunk()
+                self.dataloader = create_dataloader(self.cfg, self.augmentor, mode, dataset=self.dataset.dataset)
                 self.dataloader = iter(self.dataloader)
                 print('start train', chunk)
                 self.train()
@@ -264,10 +264,10 @@ class Trainer(object):
         else:
             num_chunk = len(self.dataset.chunk_num_ind)
             for chunk in range(num_chunk):
-                self.dataset.updatechunk(do_load=False)
+                self.dataset.update_chunk(do_load=False)
                 self.inference_output_name = self.cfg.INFERENCE.OUTPUT_NAME + self.dataset.get_coord_name() + '.h5'
                 if not os.path.exists(os.path.join(self.output_dir, self.inference_output_name)):
-                    self.dataset.loadchunk()
-                    self.dataloader = build_dataloader(self.cfg, self.augmentor, mode, dataset=self.dataset.dataset)
+                    self.dataset.load_chunk()
+                    self.dataloader = create_dataloader(self.cfg, self.augmentor, mode, dataset=self.dataset.dataset)
                     self.dataloader = iter(self.dataloader)
                     self.test()

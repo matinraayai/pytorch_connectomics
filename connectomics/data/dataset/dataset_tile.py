@@ -6,7 +6,7 @@ import random
 import torch.utils.data
 
 from . import VolumeDataset
-from ..utils import relabel, seg_widen_border, tileToVolume
+from ..utils import relabel, seg_widen_border, tile_to_volume
 
 
 class TileDataset(torch.utils.data.Dataset):
@@ -111,17 +111,17 @@ class TileDataset(torch.utils.data.Dataset):
                                 self.pad_size[1], -self.pad_size[2], self.pad_size[2]]
         print('load tile', self.coord)
         # keep it in uint8 to save memory
-        volume = [tileToVolume(self.json_volume['image'], coord_p, self.coord_m,
-                               tile_sz=self.json_volume['tile_size'], tile_st=self.json_volume['tile_st'],
-                               tile_ratio=self.json_volume['tile_ratio'])]
+        volume = [tile_to_volume(self.json_volume['image'], coord_p, self.coord_m,
+                                 tile_sz=self.json_volume['tile_size'], tile_st=self.json_volume['tile_st'],
+                                 tile_ratio=self.json_volume['tile_ratio'])]
         label = None
         if self.json_label is not None: 
             dt = {'uint8': np.uint8, 'uint16': np.uint16, 'uint32': np.uint32, 'uint64': np.uint64}
             # float32 may misrepresent large uint32/uint64 numbers -> relabel to decrease the label index
-            label = [relabel(tileToVolume(self.json_label['image'], coord_p, self.coord_m,
-                                          tile_sz=self.json_label['tile_size'],tile_st=self.json_label['tile_st'],
-                                          tile_ratio=self.json_label['tile_ratio'], ndim=self.json_label['ndim'],
-                                          dt=dt[self.json_label['dtype']], do_im=0), do_type=True)]
+            label = [relabel(tile_to_volume(self.json_label['image'], coord_p, self.coord_m,
+                                            tile_sz=self.json_label['tile_size'], tile_st=self.json_label['tile_st'],
+                                            tile_ratio=self.json_label['tile_ratio'], ndim=self.json_label['ndim'],
+                                            dt=dt[self.json_label['dtype']], do_im=0), do_type=True)]
             if self.label_erosion != 0:
                 label[0] = seg_widen_border(label[0], self.label_erosion)
         self.dataset = VolumeDataset(volume,label,

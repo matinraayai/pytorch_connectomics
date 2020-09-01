@@ -7,7 +7,7 @@ import torch.utils.data
 
 from .dataset_volume import VolumeDataset
 from .dataset_tile import TileDataset
-from ..utils import collate_fn_target, collate_fn_test, seg_widen_border, readvol
+from ..utils import collate_fn_target, collate_fn_test, seg_widen_border, read_volume
 
 __all__ = ['VolumeDataset', 'TileDataset', 'create_dataloader', 'create_dataset']
 
@@ -38,7 +38,7 @@ def _get_input(cfg, mode='train'):
         label = [None]*len(label_name)
 
     for i in range(len(img_name)):
-        volume[i] = readvol(img_name[i])
+        volume[i] = read_volume(img_name[i])
         print(f"volume shape (original): {volume[i].shape}")
         if (np.array(cfg.DATASET.DATA_SCALE) != 1).any():
             volume[i] = zoom(volume[i], cfg.DATASET.DATA_SCALE, order=1) 
@@ -48,7 +48,7 @@ def _get_input(cfg, mode='train'):
         print(f"volume shape (after scaling and padding): {volume[i].shape}")
 
         if mode == 'train':
-            label[i] = readvol(label_name[i])
+            label[i] = read_volume(label_name[i])
             if (np.array(cfg.DATASET.DATA_SCALE) != 1).any():
                 label[i] = zoom(label[i], cfg.DATASET.DATA_SCALE, order=0) 
             if cfg.DATASET.LABEL_EROSION != 0:

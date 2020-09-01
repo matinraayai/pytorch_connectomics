@@ -1,23 +1,22 @@
 from __future__ import print_function, division
-import os, sys
 import numpy as np
 from scipy import ndimage
 from skimage import morphology
-from skimage.morphology import skeletonize, dilation, erosion
+from skimage.morphology import skeletonize
+
 
 def skeleton_transform(label, relabel=True):
     resolution = (1.0, 1.0)
     alpha = 1.0
     beta = 0.8
 
-    if relabel == True: # run connected component
+    if relabel:  # run connected component
         label = morphology.label(label, background=0)
     
     label_id = np.unique(label)
-    # print(np.unique(label_id))
     skeleton = np.zeros(label.shape, dtype=np.uint8)
     distance = np.zeros(label.shape, dtype=np.float32)
-    Temp = np.zeros(label.shape, dtype=np.uint8)
+    temp = np.zeros(label.shape, dtype=np.uint8)
     if len(label_id) == 1: # only one object within current volume
         if label_id[0] == 0:
             return distance, skeleton
@@ -30,9 +29,9 @@ def skeleton_transform(label, relabel=True):
         temp1 = (label == idx)
         temp2 = morphology.remove_small_holes(temp1, 16, connectivity=1)
 
-        #temp3 = erosion(temp2)
+        # temp3 = erosion(temp2)
         temp3 = temp2.copy()
-        Temp += temp3
+        temp += temp3
         skeleton_mask = skeletonize(temp3).astype(np.uint8)
         skeleton += skeleton_mask
 
@@ -47,9 +46,10 @@ def skeleton_transform(label, relabel=True):
         distance += reverse*temp3
 
     # generate boundary
-    distance[np.where(Temp == 0)] = -1.0
+    distance[np.where(temp == 0)] = -1.0
 
     return distance, skeleton
+
 
 def skeleton_transform_volume(label):
     vol_distance = np.zeros_like(label, dtype=np.float32)

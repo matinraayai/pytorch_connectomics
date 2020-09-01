@@ -37,11 +37,11 @@ def polarity2instance(volume, thres=0.5, thres_small=128,
         semantic (bool): return only the semantic mask of pre- and post-synaptic regions. Default: False
 
     Examples::
-        >>> from connectomics.data.utils import readvol, savevol
+        >>> from connectomics.data.utils import read_volume, save_volume
         >>> from connectomics.utils.processing import polarity2instance
-        >>> volume = readvol(input_name)
+        >>> volume = read_volume(input_name)
         >>> instances = polarity2instance(volume)
-        >>> savevol(output_name, instances)
+        >>> save_volume(output_name, instances)
     """
     thres = int(255.0 * thres)
     temp = (volume > thres).astype(np.uint8)

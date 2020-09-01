@@ -1,11 +1,13 @@
 import numpy as np
 
+
 def build_blending_matrix(sz, mode='gaussian'):
     assert mode in ['gaussian', 'bump']
-    if mode=='gaussian':
+    if mode == 'gaussian':
         return blend_gaussian(sz)
     else:
         return blend_bump(sz)
+
 
 def blend_gaussian(sz, sigma=0.2, mu=0.0):  
     """

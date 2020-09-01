@@ -37,7 +37,7 @@ class unet_residual_3d(nn.Module):
                 # 2d residual module
                 conv3d_norm_act(in_planes=filters[0], out_planes=filters[0], 
                               kernel_size=(1,3,3), stride=1, padding=(0,1,1), pad_mode=pad_mode, norm_mode=norm_mode, act_mode=act_mode),
-                residual_block_2d(filters[0], filters[0], projection=False, pad_mode=pad_mode, norm_mode=norm_mode, act_mode=act_mode)
+                ResidualBlock2D(filters[0], filters[0], projection=False, pad_mode=pad_mode, norm_mode=norm_mode, act_mode=act_mode)
             )
         else:
             filters[0] = in_channel
@@ -47,7 +47,7 @@ class unet_residual_3d(nn.Module):
             [nn.Sequential(
             conv3d_norm_act(in_planes=filters[x], out_planes=filters[x+1], 
                           kernel_size=(1,3,3), stride=1, padding=(0,1,1), pad_mode=pad_mode, norm_mode=norm_mode, act_mode=act_mode),
-            residual_block_3d(filters[x+1], filters[x+1], projection=False, pad_mode=pad_mode, norm_mode=norm_mode, act_mode=act_mode)
+            ResidualBlock3D(filters[x + 1], filters[x + 1], projection=False, pad_mode=pad_mode, norm_mode=norm_mode, act_mode=act_mode)
             ) for x in range(self.depth)])
 
         # pooling downsample
@@ -56,14 +56,14 @@ class unet_residual_3d(nn.Module):
         # center block
         self.center = nn.Sequential(conv3d_norm_act(in_planes=filters[-2], out_planes=filters[-1], 
                           kernel_size=(1,3,3), stride=1, padding=(0,1,1), pad_mode=pad_mode, norm_mode=norm_mode, act_mode=act_mode),
-            residual_block_3d(filters[-1], filters[-1], projection=True)
-        )
+                                    ResidualBlock3D(filters[-1], filters[-1], projection=True)
+                                    )
 
         self.upC = nn.ModuleList(
             [nn.Sequential(
                 conv3d_norm_act(in_planes=filters[x+1], out_planes=filters[x+1], 
                           kernel_size=(1,3,3), stride=1, padding=(0,1,1), pad_mode=pad_mode, norm_mode=norm_mode, act_mode=act_mode),
-                residual_block_3d(filters[x+1], filters[x+1], projection=False)
+                ResidualBlock3D(filters[x + 1], filters[x + 1], projection=False)
             ) for x in range(self.depth)])
 
         if self.do_embedding: 
@@ -71,7 +71,7 @@ class unet_residual_3d(nn.Module):
             self.upE = nn.Sequential(
                 conv3d_norm_act(in_planes=filters[0], out_planes=filters[0], 
                               kernel_size=(1,3,3), stride=1, padding=(0,1,1), pad_mode=pad_mode, norm_mode=norm_mode, act_mode=act_mode),
-                residual_block_2d(filters[0], filters[0], projection=False, pad_mode=pad_mode, norm_mode=norm_mode, act_mode=act_mode),
+                ResidualBlock2D(filters[0], filters[0], projection=False, pad_mode=pad_mode, norm_mode=norm_mode, act_mode=act_mode),
                 conv3d_norm_act(in_planes=filters[0], out_planes=out_channel, 
                               kernel_size=(1,5,5), stride=1, padding=(0,2,2), pad_mode=pad_mode, norm_mode=norm_mode)
             )
@@ -81,8 +81,8 @@ class unet_residual_3d(nn.Module):
                             nn.Upsample(scale_factor=(1,2,2), mode='trilinear', align_corners=False)) for x in range(self.depth+1)])
         else:
             # new
-            head_pred = [residual_block_3d(filters[1], filters[1], projection=False)
-                                    for x in range(head_depth-1)] + \
+            head_pred = [ResidualBlock3D(filters[1], filters[1], projection=False)
+                         for x in range(head_depth-1)] + \
                               [conv3d_norm_act(filters[1], out_channel, kernel_size=(1,1,1), padding=0, norm_mode=norm_mode)]
             self.upS = nn.ModuleList( [nn.Sequential(*head_pred)] + \
                                  [nn.Sequential(
