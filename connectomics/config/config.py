@@ -1,15 +1,41 @@
 import os
-from yacs.config import CfgNode as CN
+from yacs.config import CfgNode
+
+
+class CaseInsensitiveCfgNode(CfgNode):
+    def __init__(self, init_dict=None, key_list=None, new_allowed=False):
+        super().__init__(init_dict, key_list, new_allowed)
+
+    def __setattr__(self, key, value):
+        if isinstance(key, str):
+            key = key.lower()
+        return super().__setattr__(key, value)
+
+    def __getattr__(self, item):
+        if isinstance(item, str):
+            item = item.lower()
+        return super().__getattr__(item)
+
+    def __setitem__(self, key, value):
+        if isinstance(key, str):
+            key = key.lower()
+        return super().__setitem__(key, value)
+
+    def __getitem__(self, item):
+        if isinstance(item, str):
+            item = item.lower()
+        return super().__getitem__(item)
+
 
 # -----------------------------------------------------------------------------
 # Config definition
 # -----------------------------------------------------------------------------
-_C = CN()
+_C = CaseInsensitiveCfgNode()
 
 # -----------------------------------------------------------------------------
 # System
 # -----------------------------------------------------------------------------
-_C.SYSTEM = CN()
+_C.SYSTEM = CaseInsensitiveCfgNode()
 
 _C.SYSTEM.NUM_GPUS = 4
 
@@ -18,19 +44,19 @@ _C.SYSTEM.NUM_CPUS = 4
 # -----------------------------------------------------------------------------
 # Model
 # -----------------------------------------------------------------------------
-_C.MODEL = CN()
+_C.MODEL = CaseInsensitiveCfgNode()
 
 # Model architectures defined in the package: unet_super, super, fpn, unet_residual_3d
-_C.MODEL.ARCHITECTURE = 'unet_residual_3d' 
+_C.MODEL.ARCHITECTURE = 'unet_residual_3d'
 
 # Number of filters per unet block
-_C.MODEL.FILTERS = [28, 36, 48, 64, 80] 
+_C.MODEL.FILTERS = [28, 36, 48, 64, 80]
 
 _C.MODEL.TARGET_OPT = ['0']
 
 _C.MODEL.WEIGHT_OPT = [['1']]
 
-# Choose the right loss function for each target: 
+# Choose the right loss function for each target:
 # 'WeightedMSE', 'WeightedBCE', 'JaccardLoss', 'DiceLoss'
 _C.MODEL.LOSS_OPTION = [['WeightedBCE']]
 
@@ -38,14 +64,14 @@ _C.MODEL.LOSS_OPTION = [['WeightedBCE']]
 _C.MODEL.LOSS_WEIGHT = [[1.0]]
 
 # Define the number of input channels. Usually EM images are
-# single-channel gray-scale image. 
-_C.MODEL.IN_PLANES = 1 
+# single-channel gray-scale image.
+_C.MODEL.IN_PLANES = 1
 
 # Define the number of output channels.
-_C.MODEL.OUT_PLANES = 1 
+_C.MODEL.OUT_PLANES = 1
 
 # Padding mode, possible options: 'zeros','circular', 'rep'
-_C.MODEL.PAD_MODE = 'rep' 
+_C.MODEL.PAD_MODE = 'rep'
 
 # Normalization mode, possible options: 'bn', 'abn', 'in', 'bin'
 _C.MODEL.NORM_MODE = 'bn'
@@ -86,10 +112,10 @@ _C.MODEL.PRE_MODEL_LAYER_SELECT = -1
 # -----------------------------------------------------------------------------
 # Dataset
 # -----------------------------------------------------------------------------
-_C.DATASET = CN()
+_C.DATASET = CaseInsensitiveCfgNode()
 
 # Scale ratio of the input data for different resolutions.
-# Using a DATA_SCALE of [1., 0.5, 0.5] will downsample the 
+# Using a DATA_SCALE of [1., 0.5, 0.5] will downsample the
 # original image by two times (e.g., 4nm -> 8nm).
 _C.DATASET.DATA_SCALE = [1., 1., 1.]
 
@@ -109,7 +135,7 @@ _C.DATASET.OUTPUT_PATH = ''
 _C.DATASET.DO_2D = False
 
 # Padding size for the input volumes
-_C.DATASET.PAD_SIZE = [2, 64, 64] 
+_C.DATASET.PAD_SIZE = [2, 64, 64]
 
 # Half Patch size for 2D label erosion
 _C.DATASET.LABEL_EROSION = 0
@@ -142,7 +168,7 @@ _C.DATASET.PRE_LOAD_DATA = [None, None, None]
 # For some datasets the foreground mask is sparse in the volume. Therefore
 # we perform reject sampling to decrease (all completely avoid) regions
 # without foreground masks. Set REJECT_SAMPLING.SIZE_THRES = -1 to disable.
-_C.DATASET.REJECT_SAMPLING = CN()
+_C.DATASET.REJECT_SAMPLING = CaseInsensitiveCfgNode()
 _C.DATASET.REJECT_SAMPLING.SIZE_THRES = -1
 # By default, we conduct rejection sampling before data augmentation to
 # save data loading time. However, the final output after augmentation
@@ -153,64 +179,64 @@ _C.DATASET.REJECT_SAMPLING.P = 0.95
 # -----------------------------------------------------------------------------
 # Augmentor
 # -----------------------------------------------------------------------------
-_C.AUGMENTOR = CN()
+_C.AUGMENTOR = CaseInsensitiveCfgNode()
 
 # The nearest interpolation for the label mask during data augmentation
 # can result in masks with coarse boundaries. Thus we apply Gaussian filtering
 # to smooth the object boundary (default: True).
 _C.AUGMENTOR.SMOOTH = True
 
-_C.AUGMENTOR.ROTATE = CN({"ENABLED": True})
+_C.AUGMENTOR.ROTATE = CaseInsensitiveCfgNode({"ENABLED": True})
 _C.AUGMENTOR.ROTATE.P = 0.5
 
-_C.AUGMENTOR.RESCALE = CN({"ENABLED": True})
+_C.AUGMENTOR.RESCALE = CaseInsensitiveCfgNode({"ENABLED": True})
 _C.AUGMENTOR.RESCALE.P = 0.5
 
-_C.AUGMENTOR.FLIP = CN({"ENABLED": True})
+_C.AUGMENTOR.FLIP = CaseInsensitiveCfgNode({"ENABLED": True})
 _C.AUGMENTOR.FLIP.P = 1.0
 # Conducting x-z and y-z flip only when the dataset is isotropic
-# and the input is cubic. 
+# and the input is cubic.
 _C.AUGMENTOR.FLIP.DO_ZTRANS = 0
 
-_C.AUGMENTOR.ELASTIC = CN({"ENABLED": True})
+_C.AUGMENTOR.ELASTIC = CaseInsensitiveCfgNode({"ENABLED": True})
 _C.AUGMENTOR.ELASTIC.P = 0.75
 # Maximum pixel-moving distance of elastic transformation
 _C.AUGMENTOR.ELASTIC.ALPHA = 16.0
 # Standard deviation of the Gaussian filter
 _C.AUGMENTOR.ELASTIC.SIGMA = 4.0
 
-_C.AUGMENTOR.GRAYSCALE = CN({"ENABLED": True})
+_C.AUGMENTOR.GRAYSCALE = CaseInsensitiveCfgNode({"ENABLED": True})
 _C.AUGMENTOR.GRAYSCALE.P = 0.75
 
-_C.AUGMENTOR.MISSINGPARTS = CN({"ENABLED": True})
+_C.AUGMENTOR.MISSINGPARTS = CaseInsensitiveCfgNode({"ENABLED": True})
 _C.AUGMENTOR.MISSINGPARTS.P = 0.9
 
-_C.AUGMENTOR.MISSINGSECTION = CN({"ENABLED": True})
+_C.AUGMENTOR.MISSINGSECTION = CaseInsensitiveCfgNode({"ENABLED": True})
 _C.AUGMENTOR.MISSINGSECTION.P = 0.5
 _C.AUGMENTOR.MISSINGSECTION.NUM_SECTION = 2
 
-_C.AUGMENTOR.MISALIGNMENT = CN({"ENABLED": True})
+_C.AUGMENTOR.MISALIGNMENT = CaseInsensitiveCfgNode({"ENABLED": True})
 _C.AUGMENTOR.MISALIGNMENT.P = 0.5
 # Maximum pixel displacement in each direction (x and y) (int)
 _C.AUGMENTOR.MISALIGNMENT.DISPLACEMENT = 16
 # The ratio of mis-alignment by rotation among all mis-alignment augmentations.
 _C.AUGMENTOR.MISALIGNMENT.ROTATE_RATIO = 0.5
 
-_C.AUGMENTOR.MOTIONBLUR = CN({"ENABLED": True})
+_C.AUGMENTOR.MOTIONBLUR = CaseInsensitiveCfgNode({"ENABLED": True})
 _C.AUGMENTOR.MOTIONBLUR.P = 0.5
 # Number of sections along z dimension to apply motion blur
 _C.AUGMENTOR.MOTIONBLUR.SECTIONS = 2
 # Kernel size of motion blur
 _C.AUGMENTOR.MOTIONBLUR.KERNEL_SIZE = 11
 
-_C.AUGMENTOR.CUTBLUR = CN({"ENABLED": True})
+_C.AUGMENTOR.CUTBLUR = CaseInsensitiveCfgNode({"ENABLED": True})
 _C.AUGMENTOR.CUTBLUR.P = 0.5
 _C.AUGMENTOR.CUTBLUR.LENGTH_RATIO = 0.4
 _C.AUGMENTOR.CUTBLUR.DOWN_RATIO_MIN = 2.0
 _C.AUGMENTOR.CUTBLUR.DOWN_RATIO_MAX = 8.0
 _C.AUGMENTOR.CUTBLUR.DOWNSAMPLE_Z = False
 
-_C.AUGMENTOR.CUTNOISE = CN({"ENABLED": True})
+_C.AUGMENTOR.CUTNOISE = CaseInsensitiveCfgNode({"ENABLED": True})
 _C.AUGMENTOR.CUTNOISE.P = 0.75
 _C.AUGMENTOR.CUTNOISE.LENGTH_RATIO = 0.4
 _C.AUGMENTOR.CUTNOISE.SCALE = 0.3
@@ -218,7 +244,7 @@ _C.AUGMENTOR.CUTNOISE.SCALE = 0.3
 # -----------------------------------------------------------------------------
 # Solver
 # -----------------------------------------------------------------------------
-_C.SOLVER = CN()
+_C.SOLVER = CaseInsensitiveCfgNode()
 
 # Specify the learning rate scheduler.
 _C.SOLVER.LR_SCHEDULER_NAME = "MultiStepLR"
@@ -231,7 +257,7 @@ _C.SOLVER.ITERATION_SAVE = 5000
 _C.SOLVER.ITERATION_TOTAL = 40000
 
 # Whether or not to restart training from iteration 0 regardless
-# of the 'iteration' key in the checkpoint file. This option only 
+# of the 'iteration' key in the checkpoint file. This option only
 # works when a pretrained checkpoint is loaded (default: False).
 _C.SOLVER.ITERATION_RESTART = False
 
@@ -267,7 +293,7 @@ _C.SOLVER.WARMUP_METHOD = "linear"
 _C.SOLVER.SAMPLES_PER_BATCH = 16
 
 # Gradient clipping
-_C.SOLVER.CLIP_GRADIENTS = CN({"ENABLED": False})
+_C.SOLVER.CLIP_GRADIENTS = CaseInsensitiveCfgNode({"ENABLED": False})
 # Type of gradient clipping, currently 2 values are supported:
 # - "value": the absolute values of elements of each gradients are clipped
 # - "norm": the norm of the gradient for each parameter is clipped thus
@@ -282,7 +308,7 @@ _C.SOLVER.CLIP_GRADIENTS.NORM_TYPE = 2.0
 # -----------------------------------------------------------------------------
 # Monitor
 # -----------------------------------------------------------------------------
-_C.MONITOR = CN()
+_C.MONITOR = CaseInsensitiveCfgNode()
 
 _C.MONITOR.LOG_OPT = [1, 1, 0]
 
@@ -293,7 +319,7 @@ _C.MONITOR.ITERATION_NUM = [10, 50]
 # # -----------------------------------------------------------------------------
 # # Inference
 # # -----------------------------------------------------------------------------
-_C.INFERENCE = CN()
+_C.INFERENCE = CaseInsensitiveCfgNode()
 
 _C.INFERENCE.INPUT_SIZE = []
 _C.INFERENCE.OUTPUT_SIZE = []
@@ -320,13 +346,13 @@ _C.INFERENCE.DO_EVAL = True
 _C.INFERENCE.DO_3D = True
 
 # If not None then select channel of output
-_C.INFERENCE.MODEL_OUTPUT_ID = [None] 
+_C.INFERENCE.MODEL_OUTPUT_ID = [None]
 
 # Number of test workers
-_C.INFERENCE.TEST_NUM = 1 
+_C.INFERENCE.TEST_NUM = 1
 
 # Test worker id
-_C.INFERENCE.TEST_ID = 0 
+_C.INFERENCE.TEST_ID = 0
 
 # Batchsize for inference
 _C.INFERENCE.SAMPLES_PER_BATCH = 32
@@ -345,10 +371,9 @@ def get_cfg_defaults():
 
 def update_inference_cfg(cfg):
     r"""Update configurations (cfg) when running mode is inference.
-
-    Note that None type is not supported in current release of YACS (0.1.7), but will be 
+    Note that None type is not supported in current release of YACS (0.1.7), but will be
     supported soon according to this pull request: https://github.com/rbgirshick/yacs/pull/18.
-    Therefore a re-organization of the configurations using None type will be done when 0.1.8 
+    Therefore a re-organization of the configurations using None type will be done when 0.1.8
     is released.
     """
     # Dataset configurations:
@@ -368,7 +393,7 @@ def update_inference_cfg(cfg):
 
 def save_all_cfg(cfg, output_dir):
     """Save configs in the output directory."""
-    # Save config.yaml in the experiment directory after combine all 
+    # Save config.yaml in the experiment directory after combine all
     # non-default configurations from yaml file and command line.
     path = os.path.join(output_dir, "config.yaml")
     with open(path, "w") as f:
