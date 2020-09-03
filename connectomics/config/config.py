@@ -8,23 +8,27 @@ class CaseInsensitiveCfgNode(CfgNode):
 
     def __setattr__(self, key, value):
         if isinstance(key, str):
-            key = key.lower()
+            key = self.__modify_str_key(key)
         return super().__setattr__(key, value)
 
     def __getattr__(self, item):
         if isinstance(item, str):
-            item = item.lower()
+            item = self.__modify_str_key(item)
         return super().__getattr__(item)
 
     def __setitem__(self, key, value):
         if isinstance(key, str):
-            key = key.lower()
+            key = self.__modify_str_key(key)
         return super().__setitem__(key, value)
 
     def __getitem__(self, item):
         if isinstance(item, str):
-            item = item.lower()
+            item = self.__modify_str_key(item)
         return super().__getitem__(item)
+
+    @staticmethod
+    def __modify_str_key(key):
+        return key.lower().replace("-", "_")
 
 
 # -----------------------------------------------------------------------------
