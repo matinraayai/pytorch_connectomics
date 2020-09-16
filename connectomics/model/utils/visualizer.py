@@ -33,13 +33,13 @@ class Visualizer(object):
 
     def visualize(self, cfg, volume, label, output, iter_total, writer):
         # split the prediction into chunks along the channel dimension
-        split_channels = [self.num_channels_dict[x.split('-')[0]] for x in cfg.MODEL.TARGET_OPT]
+        split_channels = [self.num_channels_dict[x.split('-')[0]] for x in cfg.model.target_opt]
         output = torch.split(output, split_channels, dim=1)
         assert len(output) == len(label)
 
-        for idx in range(len(cfg.MODEL.TARGET_OPT)):
-            RGB = (cfg.MODEL.TARGET_OPT[idx] == '1')
-            vis_name = cfg.MODEL.TARGET_OPT[idx] + '_' + str(idx)
+        for idx in range(len(cfg.model.target_opt)):
+            RGB = (cfg.model.target_opt[idx] == '1')
+            vis_name = cfg.model.target_opt[idx] + '_' + str(idx)
             self.visualize_consecutive(volume, torch.from_numpy(label[idx]), output[idx], iter_total, writer, RGB, vis_name)
 
     def visualize_consecutive(self, volume, label, output, iteration, writer, RGB=False, vis_name='0_0'):

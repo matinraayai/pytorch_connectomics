@@ -1,6 +1,7 @@
 # Inference on Large-Scale Datasets
 from __future__ import division, print_function
-import os, sys
+import os
+import sys
 import torch
 import torch.nn as nn
 import numpy as np
@@ -9,9 +10,9 @@ from imageio import imread
 import itertools
 
 # model
-from torch_connectomics.utils.net import *
-from torch_connectomics.data.dataset import AffinityDataset, SynapseDataset, SynapsePolarityDataset, MitoDataset, MitoSkeletonDataset
-from torch_connectomics.data.utils import collate_fn, collate_fn_test, collate_fn_skel
+from connectomics.utils.net import *
+from connectomics.data.dataset import AffinityDataset, SynapseDataset, SynapsePolarityDataset, MitoDataset, MitoSkeletonDataset
+from connectomics.data.utils import collate_fn, collate_fn_test, collate_fn_skel
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model = setup_model(args, device, exact=True)
@@ -24,9 +25,12 @@ bfly_db = json.load(open(bfly_path))
 
 p_vol = param['data']
 tile_sz = p_vol['tile-size']
-z0=p_vol['z0'];z1=p_vol['z1']
-y0=p_vol['y0'];y1=p_vol['y1']
-x0=p_vol['x0'];x1=p_vol['x1']
+z0 = p_vol['z0']
+z1 = p_vol['z1']
+y0 = p_vol['y0']
+y1 = p_vol['y1']
+x0 = p_vol['x0']
+x1 = p_vol['x1']
 
 # input volume: z,y,x
 p_aff = param['aff']

@@ -39,63 +39,63 @@ def build_train_augmentor(cfg, keep_uncropped=False, keep_non_smoothed=False):
     # in the config files.
     aug_list = []
     # 1. rotate
-    if cfg.AUGMENTOR.ROTATE.ENABLED:
-        aug_list.append(Rotate(p=cfg.AUGMENTOR.ROTATE.P))
+    if cfg.augmentor.ROTATE.ENABLED:
+        aug_list.append(Rotate(p=cfg.augmentor.ROTATE.P))
 
     # 2. rescale
-    if cfg.AUGMENTOR.RESCALE.ENABLED:
-        aug_list.append(Rescale(p=cfg.AUGMENTOR.RESCALE.P))
+    if cfg.augmentor.RESCALE.ENABLED:
+        aug_list.append(Rescale(p=cfg.augmentor.RESCALE.P))
 
     # 3. flip
-    if cfg.AUGMENTOR.FLIP.ENABLED:
-        aug_list.append(Flip(p=cfg.AUGMENTOR.FLIP.P, 
-                             do_ztrans=cfg.AUGMENTOR.FLIP.DO_ZTRANS))
+    if cfg.augmentor.FLIP.ENABLED:
+        aug_list.append(Flip(p=cfg.augmentor.FLIP.P,
+                             do_ztrans=cfg.augmentor.FLIP.DO_ZTRANS))
 
     # 4. elastic
-    if cfg.AUGMENTOR.ELASTIC.ENABLED:
-        aug_list.append(Elastic(alpha=cfg.AUGMENTOR.ELASTIC.ALPHA, 
-                                sigma = cfg.AUGMENTOR.ELASTIC.SIGMA, 
-                                p=cfg.AUGMENTOR.ELASTIC.P))
+    if cfg.augmentor.ELASTIC.ENABLED:
+        aug_list.append(Elastic(alpha=cfg.augmentor.ELASTIC.ALPHA,
+                                sigma = cfg.augmentor.ELASTIC.SIGMA,
+                                p=cfg.augmentor.ELASTIC.P))
 
     # 5. grayscale
-    if cfg.AUGMENTOR.GRAYSCALE.ENABLED:
-        aug_list.append(Grayscale(p=cfg.AUGMENTOR.GRAYSCALE.P))
+    if cfg.augmentor.GRAYSCALE.ENABLED:
+        aug_list.append(Grayscale(p=cfg.augmentor.GRAYSCALE.P))
 
     # 6. missingparts
-    if cfg.AUGMENTOR.MISSINGPARTS.ENABLED:
-        aug_list.append(MissingParts(p=cfg.AUGMENTOR.MISSINGPARTS.P))
+    if cfg.augmentor.MISSINGPARTS.ENABLED:
+        aug_list.append(MissingParts(p=cfg.augmentor.MISSINGPARTS.P))
 
     # 7. missingsection
-    if cfg.AUGMENTOR.MISSINGSECTION.ENABLED and not cfg.DATASET.DO_2D:
-            aug_list.append(MissingSection(p=cfg.AUGMENTOR.MISSINGSECTION.P, 
-                                           num_sections=cfg.AUGMENTOR.MISSINGSECTION.NUM_SECTION))
+    if cfg.augmentor.MISSINGSECTION.ENABLED and not cfg.dataset.do_2D:
+            aug_list.append(MissingSection(p=cfg.augmentor.MISSINGSECTION.P,
+                                           num_sections=cfg.augmentor.MISSINGSECTION.NUM_SECTION))
 
     # 8. misalignment
-    if cfg.AUGMENTOR.MISALIGNMENT.ENABLED and not cfg.DATASET.DO_2D:
-            aug_list.append(MisAlignment(p=cfg.AUGMENTOR.MISALIGNMENT.P, 
-                                         displacement=cfg.AUGMENTOR.MISALIGNMENT.DISPLACEMENT,
-                                         rotate_ratio=cfg.AUGMENTOR.MISALIGNMENT.ROTATE_RATIO))
+    if cfg.augmentor.MISALIGNMENT.ENABLED and not cfg.dataset.do_2D:
+            aug_list.append(MisAlignment(p=cfg.augmentor.MISALIGNMENT.P,
+                                         displacement=cfg.augmentor.MISALIGNMENT.DISPLACEMENT,
+                                         rotate_ratio=cfg.augmentor.MISALIGNMENT.ROTATE_RATIO))
     # 9. motion-blur
-    if cfg.AUGMENTOR.MOTIONBLUR.ENABLED:
-        aug_list.append(MotionBlur(p=cfg.AUGMENTOR.MOTIONBLUR.P, 
-                                   sections=cfg.AUGMENTOR.MOTIONBLUR.SECTIONS, 
-                                   kernel_size=cfg.AUGMENTOR.MOTIONBLUR.KERNEL_SIZE))
+    if cfg.augmentor.MOTIONBLUR.ENABLED:
+        aug_list.append(MotionBlur(p=cfg.augmentor.MOTIONBLUR.P,
+                                   sections=cfg.augmentor.MOTIONBLUR.SECTIONS,
+                                   kernel_size=cfg.augmentor.MOTIONBLUR.KERNEL_SIZE))
 
     # 10. cut-blur
-    if cfg.AUGMENTOR.CUTBLUR.ENABLED:
-        aug_list.append(CutBlur(p=cfg.AUGMENTOR.CUTBLUR.P, 
-                                length_ratio=cfg.AUGMENTOR.CUTBLUR.LENGTH_RATIO, 
-                                down_ratio_min=cfg.AUGMENTOR.CUTBLUR.DOWN_RATIO_MIN,
-                                down_ratio_max=cfg.AUGMENTOR.CUTBLUR.DOWN_RATIO_MAX,
-                                downsample_z=cfg.AUGMENTOR.CUTBLUR.DOWNSAMPLE_Z))
+    if cfg.augmentor.CUTBLUR.ENABLED:
+        aug_list.append(CutBlur(p=cfg.augmentor.CUTBLUR.P,
+                                length_ratio=cfg.augmentor.CUTBLUR.LENGTH_RATIO,
+                                down_ratio_min=cfg.augmentor.CUTBLUR.DOWN_RATIO_MIN,
+                                down_ratio_max=cfg.augmentor.CUTBLUR.DOWN_RATIO_MAX,
+                                downsample_z=cfg.augmentor.CUTBLUR.DOWNSAMPLE_Z))
 
     # 11. cut-noise
-    if cfg.AUGMENTOR.CUTNOISE.ENABLED:
-        aug_list.append(CutNoise(p=cfg.AUGMENTOR.CUTNOISE.P, 
-                                length_ratio=cfg.AUGMENTOR.CUTNOISE.LENGTH_RATIO, 
-                                scale=cfg.AUGMENTOR.CUTNOISE.SCALE))
+    if cfg.augmentor.CUTNOISE.ENABLED:
+        aug_list.append(CutNoise(p=cfg.augmentor.CUTNOISE.P,
+                                 length_ratio=cfg.augmentor.CUTNOISE.LENGTH_RATIO,
+                                 scale=cfg.augmentor.CUTNOISE.SCALE))
 
-    augmentor = Compose(aug_list, input_size=cfg.MODEL.INPUT_SIZE, smooth=cfg.AUGMENTOR.SMOOTH,
+    augmentor = Compose(aug_list, input_size=cfg.model.input_size, smooth=cfg.augmentor.SMOOTH,
                         keep_uncropped=keep_uncropped, keep_non_smoothed=keep_non_smoothed)
 
     return augmentor

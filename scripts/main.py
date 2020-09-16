@@ -43,10 +43,10 @@ def main():
     print("Configuration details:")
     print(cfg)
 
-    if not os.path.exists(cfg.DATASET.OUTPUT_PATH):
-        print('Output directory: ', cfg.DATASET.OUTPUT_PATH)
-        os.makedirs(cfg.DATASET.OUTPUT_PATH)
-        save_all_cfg(cfg, cfg.DATASET.OUTPUT_PATH)
+    if not os.path.exists(cfg.dataset.output_path):
+        print('Output directory: ', cfg.dataset.output_path)
+        os.makedirs(cfg.dataset.output_path)
+        save_all_cfg(cfg, cfg.dataset.output_path)
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print("Device: ", device)
@@ -55,7 +55,7 @@ def main():
 
     mode = 'test' if args.inference else 'train'
     trainer = Trainer(cfg, device, mode, args.checkpoint)
-    if cfg.DATASET.DO_CHUNK_TITLE == 0:
+    if cfg.dataset.DO_CHUNK_TITLE == 0:
         if args.inference:
             trainer.test()
         else:

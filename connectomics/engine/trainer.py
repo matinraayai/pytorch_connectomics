@@ -26,13 +26,13 @@ class Trainer(object):
     def __init__(self, cfg, device, mode, checkpoint=None):
         self.cfg = cfg
         self.device = device
-        self.output_dir = cfg.DATASET.OUTPUT_PATH
+        self.output_dir = cfg.dataset.output_path
         self.mode = mode
 
         self.model = build_model(self.cfg, self.device)
         self.optimizer = build_optimizer(self.cfg, self.model)
         self.lr_scheduler = build_lr_scheduler(self.cfg, self.optimizer)
-        self.start_iter = self.cfg.MODEL.PRE_MODEL_ITER
+        self.start_iter = self.cfg.model.PRE_MODEL_ITER
         if checkpoint is not None:
             self.update_checkpoint(checkpoint)
 
@@ -45,7 +45,7 @@ class Trainer(object):
         else:
             self.augmentor = None
 
-        if cfg.DATASET.DO_CHUNK_TITLE == 0:
+        if cfg.dataset.DO_CHUNK_TITLE == 0:
             self.dataloader = create_dataloader(self.cfg, self.augmentor, self.mode)
             self.dataloader = iter(self.dataloader)
         else:
@@ -113,19 +113,19 @@ class Trainer(object):
         else:
             self.model.train()
 
-        ww = build_blending_matrix(self.cfg.MODEL.OUTPUT_SIZE, self.cfg.INFERENCE.BLENDING)
+        ww = build_blending_matrix(self.cfg.model.output_size, self.cfg.INFERENCE.BLENDING)
         if self.cfg.INFERENCE.MODEL_OUTPUT_ID[0] is None:
-            NUM_OUT = self.cfg.MODEL.OUT_PLANES
+            NUM_OUT = self.cfg.model.out_planes
         else:
             NUM_OUT = len(self.cfg.INFERENCE.MODEL_OUTPUT_ID)
-        pad_size = self.cfg.DATASET.PAD_SIZE
-        if len(self.cfg.DATASET.PAD_SIZE)==3:
-            pad_size = [self.cfg.DATASET.PAD_SIZE[0],self.cfg.DATASET.PAD_SIZE[0],
-                        self.cfg.DATASET.PAD_SIZE[1],self.cfg.DATASET.PAD_SIZE[1],
-                        self.cfg.DATASET.PAD_SIZE[2],self.cfg.DATASET.PAD_SIZE[2]]
+        pad_size = self.cfg.dataset.PAD_SIZE
+        if len(self.cfg.dataset.PAD_SIZE)==3:
+            pad_size = [self.cfg.dataset.PAD_SIZE[0], self.cfg.dataset.PAD_SIZE[0],
+                        self.cfg.dataset.PAD_SIZE[1], self.cfg.dataset.PAD_SIZE[1],
+                        self.cfg.dataset.PAD_SIZE[2], self.cfg.dataset.PAD_SIZE[2]]
         
-        if "super" in self.cfg.MODEL.ARCHITECTURE:
-            output_size = np.array(self.dataloader._dataset.volume_size)*np.array(self.cfg.DATASET.SCALE_FACTOR).tolist()
+        if "super" in self.cfg.model.architecture:
+            output_size = np.array(self.dataloader._dataset.volume_size)*np.array(self.cfg.dataset.scale_factor).tolist()
             result = [np.stack([np.zeros(x, dtype=np.float32) for _ in range(NUM_OUT)]) for x in output_size]
             weight = [np.zeros(x, dtype=np.float32) for x in output_size]
         else:
@@ -138,7 +138,7 @@ class Trainer(object):
         self.inference_output_name = test_augmentor.update_name(self.inference_output_name)
 
         start = time.time()
-        sz = tuple([NUM_OUT] + list(self.cfg.MODEL.OUTPUT_SIZE))
+        sz = tuple([NUM_OUT] + list(self.cfg.model.output_size))
         total_num_vols = len(self.dataloader) * self.cfg.INFERENCE.SAMPLES_PER_BATCH
         print("Total number of volumes: ", total_num_vols)
 
@@ -161,7 +161,7 @@ class Trainer(object):
                     output = output[:, self.cfg.INFERENCE.MODEL_OUTPUT_ID[0]]
                     if ndim - output.ndim == 1:
                         output = output[:,None,:]
-                if not "super" in self.cfg.MODEL.ARCHITECTURE:
+                if not "super" in self.cfg.model.architecture:
                     for idx in range(output.shape[0]):
                         st = pos[idx]
                         if result[st[0]].ndim - output[idx].ndim == 1:
@@ -175,7 +175,7 @@ class Trainer(object):
                 else:
                     for idx in range(output.shape[0]):
                         st = pos[idx]
-                        st = (np.array(st)*np.array([1]+self.cfg.DATASET.SCALE_FACTOR)).tolist()
+                        st = (np.array(st) * np.array([1] + self.cfg.dataset.scale_factor)).tolist()
                         result[st[0]][:, st[1]:st[1]+sz[1], st[2]:st[2]+sz[2], \
                         st[3]:st[3]+sz[3]] += output[idx] * np.expand_dims(ww, axis=0)
                         weight[st[0]][st[1]:st[1]+sz[1], st[2]:st[2]+sz[2], \
@@ -250,8 +250,8 @@ class Trainer(object):
     def run_chunk(self, mode):
         self.dataset = create_dataset(self.cfg, self.augmentor, mode)
         if mode == 'train':
-            num_chunk = self.total_iter_nums // self.cfg.DATASET.DATA_CHUNK_ITER
-            self.total_iter_nums = self.cfg.DATASET.DATA_CHUNK_ITER
+            num_chunk = self.total_iter_nums // self.cfg.dataset.DATA_CHUNK_ITER
+            self.total_iter_nums = self.cfg.dataset.DATA_CHUNK_ITER
             for chunk in range(num_chunk):
                 self.dataset.update_chunk()
                 self.dataloader = create_dataloader(self.cfg, self.augmentor, mode, dataset=self.dataset.dataset)
@@ -259,7 +259,7 @@ class Trainer(object):
                 print('start train', chunk)
                 self.train()
                 print('finished train', chunk)
-                self.start_iter += self.cfg.DATASET.DATA_CHUNK_ITER
+                self.start_iter += self.cfg.dataset.DATA_CHUNK_ITER
                 del self.dataloader
         else:
             num_chunk = len(self.dataset.chunk_num_ind)
