@@ -2,44 +2,15 @@ import os
 from yacs.config import CfgNode
 
 
-class CaseInsensitiveCfgNode(CfgNode):
-    def __init__(self, init_dict=None, key_list=None, new_allowed=False):
-        super().__init__(init_dict, key_list, new_allowed)
-
-    def __setattr__(self, key, value):
-        if isinstance(key, str):
-            key = self.__modify_str_key(key)
-        return super().__setattr__(key, value)
-
-    def __getattr__(self, item):
-        if isinstance(item, str):
-            item = self.__modify_str_key(item)
-        return super().__getattr__(item)
-
-    def __setitem__(self, key, value):
-        if isinstance(key, str):
-            key = self.__modify_str_key(key)
-        return super().__setitem__(key, value)
-
-    def __getitem__(self, item):
-        if isinstance(item, str):
-            item = self.__modify_str_key(item)
-        return super().__getitem__(item)
-
-    @staticmethod
-    def __modify_str_key(key):
-        return key.lower().replace("-", "_")
-
-
 # -----------------------------------------------------------------------------
 # Config definition
 # -----------------------------------------------------------------------------
-_C = CaseInsensitiveCfgNode()
+_C = CfgNode()
 
 # -----------------------------------------------------------------------------
 # System
 # -----------------------------------------------------------------------------
-_C.SYSTEM = CaseInsensitiveCfgNode()
+_C.SYSTEM = CfgNode()
 
 _C.SYSTEM.NUM_GPUS = 4
 
@@ -48,7 +19,7 @@ _C.SYSTEM.NUM_CPUS = 4
 # -----------------------------------------------------------------------------
 # Model
 # -----------------------------------------------------------------------------
-_C.MODEL = CaseInsensitiveCfgNode()
+_C.MODEL = CfgNode()
 
 # Model architectures defined in the package: unet_super, super, fpn, unet_residual_3d
 _C.MODEL.ARCHITECTURE = 'unet_residual_3d'
@@ -116,7 +87,7 @@ _C.MODEL.PRE_MODEL_LAYER_SELECT = -1
 # -----------------------------------------------------------------------------
 # Dataset
 # -----------------------------------------------------------------------------
-_C.DATASET = CaseInsensitiveCfgNode()
+_C.DATASET = CfgNode()
 
 # Scale ratio of the input data for different resolutions.
 # Using a DATA_SCALE of [1., 0.5, 0.5] will downsample the
@@ -172,7 +143,7 @@ _C.DATASET.PRE_LOAD_DATA = [None, None, None]
 # For some datasets the foreground mask is sparse in the volume. Therefore
 # we perform reject sampling to decrease (all completely avoid) regions
 # without foreground masks. Set REJECT_SAMPLING.SIZE_THRES = -1 to disable.
-_C.DATASET.REJECT_SAMPLING = CaseInsensitiveCfgNode()
+_C.DATASET.REJECT_SAMPLING = CfgNode()
 _C.DATASET.REJECT_SAMPLING.SIZE_THRES = -1
 # By default, we conduct rejection sampling before data augmentation to
 # save data loading time. However, the final output after augmentation
@@ -183,64 +154,64 @@ _C.DATASET.REJECT_SAMPLING.P = 0.95
 # -----------------------------------------------------------------------------
 # Augmentor
 # -----------------------------------------------------------------------------
-_C.AUGMENTOR = CaseInsensitiveCfgNode()
+_C.AUGMENTOR = CfgNode()
 
 # The nearest interpolation for the label mask during data augmentation
 # can result in masks with coarse boundaries. Thus we apply Gaussian filtering
 # to smooth the object boundary (default: True).
 _C.AUGMENTOR.SMOOTH = True
 
-_C.AUGMENTOR.ROTATE = CaseInsensitiveCfgNode({"ENABLED": True})
+_C.AUGMENTOR.ROTATE = CfgNode({"ENABLED": True})
 _C.AUGMENTOR.ROTATE.P = 0.5
 
-_C.AUGMENTOR.RESCALE = CaseInsensitiveCfgNode({"ENABLED": True})
+_C.AUGMENTOR.RESCALE = CfgNode({"ENABLED": True})
 _C.AUGMENTOR.RESCALE.P = 0.5
 
-_C.AUGMENTOR.FLIP = CaseInsensitiveCfgNode({"ENABLED": True})
+_C.AUGMENTOR.FLIP = CfgNode({"ENABLED": True})
 _C.AUGMENTOR.FLIP.P = 1.0
 # Conducting x-z and y-z flip only when the dataset is isotropic
 # and the input is cubic.
 _C.AUGMENTOR.FLIP.DO_ZTRANS = 0
 
-_C.AUGMENTOR.ELASTIC = CaseInsensitiveCfgNode({"ENABLED": True})
+_C.AUGMENTOR.ELASTIC = CfgNode({"ENABLED": True})
 _C.AUGMENTOR.ELASTIC.P = 0.75
 # Maximum pixel-moving distance of elastic transformation
 _C.AUGMENTOR.ELASTIC.ALPHA = 16.0
 # Standard deviation of the Gaussian filter
 _C.AUGMENTOR.ELASTIC.SIGMA = 4.0
 
-_C.AUGMENTOR.GRAYSCALE = CaseInsensitiveCfgNode({"ENABLED": True})
+_C.AUGMENTOR.GRAYSCALE = CfgNode({"ENABLED": True})
 _C.AUGMENTOR.GRAYSCALE.P = 0.75
 
-_C.AUGMENTOR.MISSINGPARTS = CaseInsensitiveCfgNode({"ENABLED": True})
+_C.AUGMENTOR.MISSINGPARTS = CfgNode({"ENABLED": True})
 _C.AUGMENTOR.MISSINGPARTS.P = 0.9
 
-_C.AUGMENTOR.MISSINGSECTION = CaseInsensitiveCfgNode({"ENABLED": True})
+_C.AUGMENTOR.MISSINGSECTION = CfgNode({"ENABLED": True})
 _C.AUGMENTOR.MISSINGSECTION.P = 0.5
 _C.AUGMENTOR.MISSINGSECTION.NUM_SECTION = 2
 
-_C.AUGMENTOR.MISALIGNMENT = CaseInsensitiveCfgNode({"ENABLED": True})
+_C.AUGMENTOR.MISALIGNMENT = CfgNode({"ENABLED": True})
 _C.AUGMENTOR.MISALIGNMENT.P = 0.5
 # Maximum pixel displacement in each direction (x and y) (int)
 _C.AUGMENTOR.MISALIGNMENT.DISPLACEMENT = 16
 # The ratio of mis-alignment by rotation among all mis-alignment augmentations.
 _C.AUGMENTOR.MISALIGNMENT.ROTATE_RATIO = 0.5
 
-_C.AUGMENTOR.MOTIONBLUR = CaseInsensitiveCfgNode({"ENABLED": True})
+_C.AUGMENTOR.MOTIONBLUR = CfgNode({"ENABLED": True})
 _C.AUGMENTOR.MOTIONBLUR.P = 0.5
 # Number of sections along z dimension to apply motion blur
 _C.AUGMENTOR.MOTIONBLUR.SECTIONS = 2
 # Kernel size of motion blur
 _C.AUGMENTOR.MOTIONBLUR.KERNEL_SIZE = 11
 
-_C.AUGMENTOR.CUTBLUR = CaseInsensitiveCfgNode({"ENABLED": True})
+_C.AUGMENTOR.CUTBLUR = CfgNode({"ENABLED": True})
 _C.AUGMENTOR.CUTBLUR.P = 0.5
 _C.AUGMENTOR.CUTBLUR.LENGTH_RATIO = 0.4
 _C.AUGMENTOR.CUTBLUR.DOWN_RATIO_MIN = 2.0
 _C.AUGMENTOR.CUTBLUR.DOWN_RATIO_MAX = 8.0
 _C.AUGMENTOR.CUTBLUR.DOWNSAMPLE_Z = False
 
-_C.AUGMENTOR.CUTNOISE = CaseInsensitiveCfgNode({"ENABLED": True})
+_C.AUGMENTOR.CUTNOISE = CfgNode({"ENABLED": True})
 _C.AUGMENTOR.CUTNOISE.P = 0.75
 _C.AUGMENTOR.CUTNOISE.LENGTH_RATIO = 0.4
 _C.AUGMENTOR.CUTNOISE.SCALE = 0.3
@@ -248,7 +219,7 @@ _C.AUGMENTOR.CUTNOISE.SCALE = 0.3
 # -----------------------------------------------------------------------------
 # Solver
 # -----------------------------------------------------------------------------
-_C.SOLVER = CaseInsensitiveCfgNode()
+_C.SOLVER = CfgNode()
 
 # Specify the learning rate scheduler.
 _C.SOLVER.LR_SCHEDULER_NAME = "MultiStepLR"
@@ -297,7 +268,7 @@ _C.SOLVER.WARMUP_METHOD = "linear"
 _C.SOLVER.SAMPLES_PER_BATCH = 16
 
 # Gradient clipping
-_C.SOLVER.CLIP_GRADIENTS = CaseInsensitiveCfgNode({"ENABLED": False})
+_C.SOLVER.CLIP_GRADIENTS = CfgNode({"ENABLED": False})
 # Type of gradient clipping, currently 2 values are supported:
 # - "value": the absolute values of elements of each gradients are clipped
 # - "norm": the norm of the gradient for each parameter is clipped thus
@@ -312,7 +283,7 @@ _C.SOLVER.CLIP_GRADIENTS.NORM_TYPE = 2.0
 # -----------------------------------------------------------------------------
 # Monitor
 # -----------------------------------------------------------------------------
-_C.MONITOR = CaseInsensitiveCfgNode()
+_C.MONITOR = CfgNode()
 
 _C.MONITOR.LOG_OPT = [1, 1, 0]
 
@@ -323,7 +294,7 @@ _C.MONITOR.ITERATION_NUM = [10, 50]
 # # -----------------------------------------------------------------------------
 # # Inference
 # # -----------------------------------------------------------------------------
-_C.INFERENCE = CaseInsensitiveCfgNode()
+_C.INFERENCE = CfgNode()
 
 _C.INFERENCE.INPUT_SIZE = []
 _C.INFERENCE.OUTPUT_SIZE = []
