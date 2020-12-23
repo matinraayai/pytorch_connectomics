@@ -53,6 +53,7 @@ _C.MODEL.NORM_MODE = 'bn'
 
 # Activation mode, possible options: 'relu', 'elu', 'leaky'
 _C.MODEL.ACT_MODE = 'elu'
+_C.MODEL.OUTPUT_ACT = 'sigmoid' # activation for the output layer
 
 # If MODEL.EMBEDDING = 1 will do embedding
 _C.MODEL.EMBEDDING = 1
@@ -98,13 +99,14 @@ _C.DATASET.DATA_SCALE = [1., 1., 1.]
 _C.DATASET.SCALE_FACTOR = [2, 3, 3]
 
 # Specify the data path in the *.yaml files for different experiments.
-_C.DATASET.IMAGE_NAME = ''
+_C.DATASET.IMAGE_NAME = 'train_image.h5'
+_C.DATASET.LABEL_NAME = None
+_C.DATASET.VALID_MASK_NAME = None
 
-_C.DATASET.LABEL_NAME = ''
+_C.DATASET.LABEL_VAST = False
+_C.DATASET.INPUT_PATH = 'path/to/input'
 
-_C.DATASET.INPUT_PATH = ''
-
-_C.DATASET.OUTPUT_PATH = ''
+_C.DATASET.OUTPUT_PATH = 'path/to/output'
 
 # 2d or 3d dataset
 _C.DATASET.DO_2D = False
@@ -127,7 +129,7 @@ _C.DATASET.DO_CHUNK_TITLE = 0
 _C.DATASET.DATA_CHUNK_NUM = [1, 1, 1]
 
 # Predefined data chunk to iterate through
-_C.DATASET.DATA_CHUNK_NUM_IND = []
+_C.DATASET.DATA_CHUNK_NUM_IND = None
 
 # Boolean variable, euqal to 'int(args.data_chunk_num[-1:])==1'
 _C.DATASET.DATA_CHUNK_STRIDE = True
@@ -135,8 +137,8 @@ _C.DATASET.DATA_CHUNK_STRIDE = True
 # Chunk parameters for tile format: chunk_iter_num
 _C.DATASET.DATA_CHUNK_ITER = 1000
 
-# Number of voxel to exceed for a valid sample
-_C.DATASET.DATA_INVALID_THRES = [0, 0]
+# Handle dataset with partial annotation.
+_C.DATASET.VALID_RATIO = 0.5
 
 _C.DATASET.PRE_LOAD_DATA = [None, None, None]
 
@@ -145,10 +147,6 @@ _C.DATASET.PRE_LOAD_DATA = [None, None, None]
 # without foreground masks. Set REJECT_SAMPLING.SIZE_THRES = -1 to disable.
 _C.DATASET.REJECT_SAMPLING = CfgNode()
 _C.DATASET.REJECT_SAMPLING.SIZE_THRES = -1
-# By default, we conduct rejection sampling before data augmentation to
-# save data loading time. However, the final output after augmentation
-# may not satisfy the SIZE_THRES. Thus some tasks require AFTER_AUG=True.
-_C.DATASET.REJECT_SAMPLING.AFTER_AUG = False
 _C.DATASET.REJECT_SAMPLING.P = 0.95
 
 # -----------------------------------------------------------------------------
@@ -161,7 +159,14 @@ _C.AUGMENTOR = CfgNode()
 # to smooth the object boundary (default: True).
 _C.AUGMENTOR.SMOOTH = True
 
+
+# CfgNodes can only contain a limited set of valid types:
+# _VALID_TYPES = {tuple, list, str, int, float, bool, type(None)}
+_C.AUGMENTOR.ADDITIONAL_TARGETS_NAME = ['label']
+_C.AUGMENTOR.ADDITIONAL_TARGETS_TYPE = ['mask']
+
 _C.AUGMENTOR.ROTATE = CfgNode({"ENABLED": True})
+_C.AUGMENTOR.ROTATE.ROT90 = True
 _C.AUGMENTOR.ROTATE.P = 0.5
 
 _C.AUGMENTOR.RESCALE = CfgNode({"ENABLED": True})
@@ -302,7 +307,7 @@ _C.INFERENCE.OUTPUT_SIZE = []
 _C.INFERENCE.INPUT_PATH = ""
 _C.INFERENCE.IMAGE_NAME = ""
 _C.INFERENCE.OUTPUT_PATH = ""
-_C.INFERENCE.OUTPUT_NAME = 'result.h5'
+_C.INFERENCE.OUTPUT_NAME = 'result'
 
 _C.INFERENCE.PAD_SIZE = []
 
@@ -364,6 +369,13 @@ def update_inference_cfg(cfg):
         cfg.MODEL.INPUT_SIZE = cfg.INFERENCE.INPUT_SIZE
     if len(cfg.INFERENCE.OUTPUT_SIZE) != 0:
         cfg.MODEL.OUTPUT_SIZE = cfg.INFERENCE.OUTPUT_SIZE
+    for topt in cfg.MODEL.TARGET_OPT:
+        # For multi-class semantic segmentation, no activation function
+        # is applied at the output layer during training. For inference
+        # where the output is assumed to be in (0,1), we apply softmax. 
+        if topt[0] == '9' and cfg.MODEL.OUTPUT_ACT == 'none':
+            cfg.MODEL.OUTPUT_ACT = 'softmax'
+            break
 
 
 def save_all_cfg(cfg, output_dir):
@@ -374,3 +386,7 @@ def save_all_cfg(cfg, output_dir):
     with open(path, "w") as f:
         f.write(cfg.dump())
     print("Full config saved to {}".format(path))
+
+def overwrite_cfg(cfg, args):
+    """Overwrite some configs given configs with higher priority."""
+    raise NotImplementedError

@@ -110,6 +110,12 @@
 <li class="toctree-l2"><a class="reference internal" href="../notes/config.html#inference">Inference</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="../notes/dataloading.html">Data Loading</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../notes/dataloading.html#data-augmentation">Data Augmentation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../notes/dataloading.html#rejection-sampling">Rejection Sampling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../notes/dataloading.html#tiledataset">TileDataset</a></li>
+</ul>
+</li>
 </ul>
 <p class="caption"><span class="caption-text">Tutorials</span></p>
 <ul>
@@ -212,9 +218,9 @@
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>cfg</strong> – YACS configurations.</li>
+<li><strong>cfg</strong> (<em>yacs.config.CfgNode</em>) – YACS configuration options.</li>
 <li><strong>device</strong> (<em>torch.device</em>) – by default all training and inference are conducted on GPUs.</li>
-<li><strong>mode</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – running mode of the trainer (<code class="docutils literal"><span class="pre">'train'</span></code> or <code class="docutils literal"><span class="pre">'test'</span></code>).</li>
+<li><strong>mode</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – running mode of the trainer (<code class="docutils literal"><span class="pre">'train'</span></code> or <code class="docutils literal"><span class="pre">'test'</span></code>).</li>
 <li><strong>checkpoint</strong> (<em>optional</em>) – the checkpoint file to be loaded (default: <cite>None</cite>)</li>
 </ul>
 </td>

@@ -83,11 +83,12 @@ def write_h5(filename, dtarray, dataset='main'):
 ####################################################################
 def vast_to_seg(seg):
     # convert to 24 bits
-    if seg.ndim == 2:
-        return seg
-    else: #vast: rgb
-        return seg[:, :, 0].astype(np.uint32)*65536+seg[:,:,1].astype(np.uint32)*256+seg[:,:,2].astype(np.uint32)
-
+    if seg.ndim==2 or seg.shape[-1]==1:
+        return np.squeeze(seg)
+    elif seg.ndim == 3: # 1 rgb image
+        return seg[:,:,0].astype(np.uint32)*65536+seg[:,:,1].astype(np.uint32)*256+seg[:,:,2].astype(np.uint32)
+    elif seg.ndim == 4: # n rgb image
+        return seg[:,:,:,0].astype(np.uint32)*65536+seg[:,:,:,1].astype(np.uint32)*256+seg[:,:,:,2].astype(np.uint32)
 
 def tile_to_volume(tiles, coord, coord_m, tile_sz, dt=np.uint8, tile_st=(0, 0), tile_ratio=1, do_im=True, ndim=1, black=128):
     # x: column

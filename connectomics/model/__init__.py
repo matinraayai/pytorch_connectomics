@@ -31,9 +31,10 @@ def build_model(cfg, device, checkpoint=None):
         model = model_map[cfg.MODEL.ARCHITECTURE](in_channel=cfg.MODEL.IN_PLANES, out_channel=cfg.MODEL.OUT_PLANES,
                                                   filters=cfg.MODEL.FILTERS,
                                                   pad_mode=cfg.MODEL.PAD_MODE, norm_mode=cfg.MODEL.NORM_MODE,
-                                                  act_mode=cfg.MODEL.ACTIVATION_MODE,
-                                                  do_embedding=(cfg.MODEL.EMBEDDING == 1),
-                                                  head_depth=cfg.MODEL.HEAD_DEPTH)
+                                                  act_mode=cfg.MODEL.ACT_MODE,
+                                                  do_embedding=(cfg.MODEL.EMBEDDING==1),
+                                                  head_depth=cfg.MODEL.HEAD_DEPTH,
+                                                  output_act=cfg.MODEL.OUTPUT_ACT)
 
     print('model: ', model.__class__.__name__)
     model = nn.DataParallel(model, device_ids=range(cfg.SYSTEM.NUM_GPUS))
@@ -81,7 +82,7 @@ def build_monitor(cfg):
     log_path = os.path.join(cfg.DATASET.OUTPUT_PATH, 'log' + date + '_' + time)
     if not os.path.isdir(log_path):
         os.makedirs(log_path)
-    return Monitor(log_path, cfg.MONITOR.LOG_OPT + [cfg.SOLVER.SAMPLES_PER_BATCH],
+    return Monitor(cfg, log_path, cfg.MONITOR.LOG_OPT+[cfg.SOLVER.SAMPLES_PER_BATCH],
                    cfg.MONITOR.VIS_OPT, cfg.MONITOR.ITERATION_NUM, cfg.DATASET.DO_2D)
 
 

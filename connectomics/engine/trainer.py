@@ -1,6 +1,7 @@
 import os, sys, glob 
 import time, itertools
 import GPUtil
+from yacs.config import CfgNode
 
 import torch
 import torch.nn as nn
@@ -18,7 +19,7 @@ class Trainer(object):
     r"""Trainer
 
     Args:
-        cfg: YACS configurations.
+        cfg (yacs.config.CfgNode): YACS configuration options.
         device (torch.device): by default all training and inference are conducted on GPUs.
         mode (str): running mode of the trainer (``'train'`` or ``'test'``).
         checkpoint (optional): the checkpoint file to be loaded (default: `None`)
@@ -87,7 +88,7 @@ class Trainer(object):
             # logging and update record
             do_vis = self.monitor.update(self.lr_scheduler, iter_total, loss, self.optimizer.param_groups[0]['lr']) 
             if do_vis:
-                self.monitor.visualize(self.cfg, volume, target, pred, iter_total)
+                self.monitor.visualize(volume, target, pred, iter_total)
                 # Display GPU stats using the GPUtil package.
                 GPUtil.showUtilization(all=True)
 
@@ -267,7 +268,9 @@ class Trainer(object):
                 self.dataset.update_chunk(do_load=False)
                 self.inference_output_name = self.cfg.INFERENCE.OUTPUT_NAME + self.dataset.get_coord_name() + '.h5'
                 if not os.path.exists(os.path.join(self.output_dir, self.inference_output_name)):
+
                     self.dataset.load_chunk()
                     self.dataloader = create_dataloader(self.cfg, self.augmentor, mode, dataset=self.dataset.dataset)
+
                     self.dataloader = iter(self.dataloader)
                     self.test()

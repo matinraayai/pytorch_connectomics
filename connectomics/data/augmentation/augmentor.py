@@ -1,25 +1,35 @@
+from __future__ import print_function, division
+from typing import Optional
 import numpy as np
 from abc import ABC, abstractmethod
 
 
 class DataAugment(ABC):
     """
-    DataAugment interface.
-
-    A data transform needs to conduct the following steps:
+    DataAugment interface. A data augmentor needs to conduct the following steps:
 
     1. Set :attr:`sample_params` at initialization to compute required sample size.
     2. Randomly generate augmentation parameters for the current transform.
     3. Apply the transform to a pair of images and corresponding labels.
 
-    All the real data augmentations should be a subclass of this class.
+    All the real data augmentations (except mix-up augmentor and test-time augmentor) 
+    should be a subclass of this class.
+
+    Args:
+        p (float): probability of applying the augmentation. Default: 0.5
+        additional_targets(dict, optional): additional targets to augment. Default: None
     """
-    def __init__(self, p=0.5):
+    def __init__(self, p=0.5, additional_targets: Optional[dict] = None):
         assert 0.0 <= p <= 1.0
         self.p = p
         self.sample_params = {
             'ratio': np.array([1.0, 1.0, 1.0]),
             'add': np.array([0, 0, 0])}
+        
+        if additional_targets is not None:
+            self.additional_targets = additional_targets
+        else: # initialize as an empty dictionary
+            self.additional_targets = {}
 
     @abstractmethod
     def set_params(self):
@@ -41,5 +51,8 @@ class DataAugment(ABC):
         For a multi-CPU dataloader, one may need to use a unique index to generate 
         the random seed (:attr:`random_state`), otherwise different workers may generate
         the same pseudo-random number for augmentation and sampling.
+
+        The only required key in :attr:`sample` is ``'image'``. The keys that are not 
+        specified in :attr:`additional_targets` will be ignored.
         """
         raise NotImplementedError

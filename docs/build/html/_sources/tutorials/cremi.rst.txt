@@ -8,6 +8,7 @@ The evaluation of the synapse detection results is based on the F1 score and ave
 for more details.
 
 .. note::
+
     We preform re-alignment of the original CREMI image stacks and also remove the crack artifacts. Please reverse 
     the alignment before submitting the test prediction to the CREMI challenge.
 
@@ -19,7 +20,7 @@ Script needed for this tutorial can be found at ``pytorch_connectomics/scripts/`
 
         .. code-block:: none
 
-            wget http://hp03.mindhackers.org/rhoana_product/dataset/cremi.zip
+            wget http://rhoana.rc.fas.harvard.edu/dataset/cremi.zip
     
     For description of the data please check `this page <https://vcg.github.io/newbie-wiki/build/html/data/data_em.html>`_.
 

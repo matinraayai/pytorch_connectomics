@@ -7,18 +7,18 @@ Mitochondria Segmentation
 Introduction
 -------------
 
-Mitochondria are the primary energy providers for cell activities, thus essential for metabolism. 
+`Mitochondria <https://en.wikipedia.org/wiki/Mitochondrion>`__ are the primary energy providers for cell activities, thus essential for metabolism. 
 Quantification of the size and geometry of mitochondria is not only crucial to basic neuroscience research, but also informative to 
 clinical studies including, but not limited to, bipolar disorder and diabetes.
 
 This tutorial has two parts. In the first part, you will learn how to make **pixel-wise class prediction** on the widely used benchmark
-dataset released by Lucchi et al. in 2012. In the second part, you will learn how to predict the **instance masks** of 
-individual mitochondrion from the large-scale MitoEM dataset released by Wei et al. in 2020.
+dataset released by `Lucchi et al. <https://ieeexplore.ieee.org/document/6619103>`__ in 2012. In the second part, you will learn how to predict the **instance masks** of 
+individual mitochondrion from the large-scale MitoEM dataset released by `Wei et al. <https://donglaiw.github.io/paper/2020_miccai_mitoEM.pdf>`__ in 2020.
 
 Semantic Segmentation
 ----------------------
 
-This section provides step-by-step guidance for mitochondria segmentation with the EM benchmark datasets released by `Lucchi et al. <https://cvlab.epfl.ch/research/page-90578-en-html/research-medical-em-mitochondria-index-php/>`_.
+This section provides step-by-step guidance for mitochondria segmentation with the EM benchmark datasets released by `Lucchi et al. <https://cvlab.epfl.ch/research/page-90578-en-html/research-medical-em-mitochondria-index-php/>`__.
 We consider the task as a **semantic segmentation** task and predict the mitochondria pixels with encoder-decoder ConvNets similar to
 the models used in affinity prediction in `neuron segmentation <https://zudi-lin.github.io/pytorch_connectomics/build/html/tutorials/snemi.html>`_. The evaluation of the mitochondria segmentation results is based on the F1 score and Intersection over Union (IoU).
 
@@ -43,7 +43,7 @@ The pytorch dataset class of lucchi data is :class:`connectomics.data.dataset.Vo
 
         .. code-block:: none
 
-            wget https://hp03.mindhackers.org/rhoana_product/dataset/lucchi.zip
+            wget http://rhoana.rc.fas.harvard.edu/dataset/lucchi.zip
     
     For description of the data please check `the author page <https://www.epfl.ch/labs/cvlab/data/data-em/>`_.
 
@@ -70,8 +70,30 @@ The pytorch dataset class of lucchi data is :class:`connectomics.data.dataset.Vo
           --config-file configs/Lucchi-Mitochondria.yaml --inference \
           --checkpoint outputs/Lucchi_mito_baseline/volume_100000.pth.tar
 
-Our pretained model achieves a VOC score of **0.943** on the test set. Please check `BENCHMARK.md <https://github.com/zudi-lin/pytorch_connectomics/blob/master/BENCHMARK.md>`_ 
-for detailed performance comparison and the pre-trained models.
+#. Since the ground-truth label of the test set is public, we can run the evaluation locally:
+
+    .. code-block:: python
+
+        from connectomics.utils.evaluation import get_binary_jaccard
+        pred = pred / 255. # output is casted to uint8 with range [0,255].
+        gt = (gt!==0).astype(np.uint8)
+        thres = [0.4, 0.6, 0.8] # evaluate at multiple thresholds.
+        scores = get_binary_jaccard(pred, gt, thres)
+
+    The prediction can be further improved by conducting median filtering to remove noise:
+
+    .. code-block:: python
+
+        from connectomics.utils.evaluation import get_binary_jaccard
+        from connectomics.utils.processing import binarize_and_median
+        pred = pred / 255. # output is casted to uint8 with range [0,255].
+        pred = binarize_and_median(pred, size=(7,7,7), thres=0.8)
+        gt = (gt!==0).astype(np.uint8)
+        scores = get_binary_jaccard(pred, gt) # prediction is already binarized
+
+Our pretained model achieves a foreground IoU and IoU of **0.892** and **0.943** on the test set, respectively. The results are better or on par with
+state-of-the-art approaches. Please check `BENCHMARK.md <https://github.com/zudi-lin/pytorch_connectomics/blob/master/BENCHMARK.md>`_  for detailed performance 
+comparison and the pre-trained models.
 
 Instance Segmentation
 ----------------------
@@ -148,10 +170,10 @@ The evaluation of the segmentation results is based on the AP-75 (average precis
 
     .. code-block:: none
 
-        $ tensorboard --logdir ``OUTPUT_PATH/xxxxx``
+        $ tensorboard --logdir ``OUTPUT_PATH/<EXP_DIR_NAME>``
 
     .. note::
-        Tensorboard will create a subdir in OUTPUT_PATH. Substitute **xxxxx** with the subdir name.
+        Our utility functions will create a subdir in OUTPUT_PATH to save the Tensorboard event files. Substitute **<EXP_DIR_NAME>** with your subdir name.
 
 #. Run inference on image volumes:
 
@@ -160,7 +182,7 @@ The evaluation of the segmentation results is based on the AP-75 (average precis
         $ source activate py3_torch
         $ python -u scripts/main.py \
           --config-file configs/MitoEM-R-A.yaml --inference \
-          --checkpoint OUTPUT_PATH/xxxxx.pth.tar
+          --checkpoint OUTPUT_PATH/checkpoint_<ITER_NUM>.pth.tar
 
     .. note::
         Please change the ``INFERENCE.IMAGE_NAME`` ``INFERENCE.OUTPUT_PATH`` ``INFERENCE.OUTPUT_NAME`` 

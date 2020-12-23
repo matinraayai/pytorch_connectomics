@@ -54,9 +54,9 @@ def im2col(A, BSZ, stepsize=1):
     return np.take(A, start_idx.ravel()[:, None] + offset_idx.ravel())
 
 def seg_widen_border(seg, tsz_h=1):
-    # Kisuk Lee's thesis (A.1.4) 
-    # we preprocessed the ground truth seg such that any voxel centered on a 3 × 3 × 1 window containing more
-    # than one positive segment ID (zero is reserved for background) is marked as background
+    # Kisuk Lee's thesis (A.1.4): 
+    # "we preprocessed the ground truth seg such that any voxel centered on a 3 × 3 × 1 window containing 
+    # more than one positive segment ID (zero is reserved for background) is marked as background."
     # seg=0: background
     tsz = 2*tsz_h+1
     sz = seg.shape
@@ -70,11 +70,11 @@ def seg_widen_border(seg, tsz_h=1):
             seg[z] = seg[z]*((p0 == p1).reshape(sz[1:]))
     else:
         mm = seg.max()
-        patch = im2col(np.pad(seg, ((tsz_h,tsz_h), (tsz_h,tsz_h)), 'reflect'), [tsz, tsz])
+        patch = im2col(np.pad(seg, ((tsz_h, tsz_h), (tsz_h, tsz_h)), 'reflect'), [tsz, tsz])
         p0 = patch.max(axis=1)
-        patch[patch == 0] = mm+1
+        patch[patch == 0] = mm + 1
         p1 = patch.min(axis=1)
-        seg = seg * ((p0 == p1).reshape(sz[1:]))
+        seg = seg * ((p0 == p1).reshape(sz))
     return seg
 
 def seg_to_small_seg(seg, thres=25,rr=2):
@@ -160,23 +160,19 @@ def seg_to_weight(target, wopts, mask=None):
     return out
 
 def seg_to_targets(label, topts):
-    # input: DHW
-    # output: CDHW
-    # mito/synapse cleft binary: topt = 0 
-    # synapse polarity: topt = 1
+    # input: (D, H, W)
+    # output: (C, D, H, W)
     out = [None]*len(topts)
     for tid,topt in enumerate(topts):
-        if topt == '-1': # direct copy
-            out[tid] = label[None,:].astype(np.float32)
+        if topt[0] == '9': # generic segmantic segmentation
+            out[tid] = label.astype(np.int64)
         elif topt == '0': # binary
             out[tid] = (label>0)[None,:].astype(np.float32)
-        elif topt[0] == '1': 
-            # synaptic polarity (multi-channel):
+        elif topt[0] == '1': # synaptic polarity:
             tmp = [None]*3 
             tmp[0] = np.logical_and((label % 2) == 1, label > 0)
             tmp[1] = np.logical_and((label % 2) == 0, label > 0)
             tmp[2] = (label > 0)
-            # concatenate at channel
             out[tid] = np.stack(tmp, 0).astype(np.float32)
         elif topt[0] == '2': # affinity
             if label.ndim == 3: # 3d aff 
@@ -193,17 +189,24 @@ def seg_to_targets(label, topts):
             out[tid] = (seg_to_small_seg(label, size_thres, zratio)>0)[None,:].astype(np.float32)
         elif topt[0] == '4': # instance boundary mask
             _, bd_sz,do_bg = [int(x) for x in topt.split('-')]
-            out[tid] = seg_to_instance_bd(label, bd_sz, do_bg)[None,:].astype(np.float32)
+            if label.ndim == 2:
+                out[tid] = seg_to_instance_bd(label[None,:], bd_sz, do_bg).astype(np.float32)
+            else:
+                out[tid] = seg_to_instance_bd(label, bd_sz, do_bg)[None,:].astype(np.float32)
+        else:
+            raise NameError("Target option %s is not valid!" % topt[0])
+
     return out
 
-def weight_binary_ratio(label, mask=None, alpha=1.0, return_factor=False):
+def weight_binary_ratio(label, mask=None, alpha=1.0):
     """Binary-class rebalancing."""
     # input: numpy tensor
-    # weight for smaller class is 1, the bigger one is at most 100*alpha
-    if label.max() == label.min(): # uniform weights for volume with a single label
+    # weight for smaller class is 1, the bigger one is at most 20*alpha
+    if label.max() == label.min(): # uniform weights for single-label volume
         weight_factor = 1.0
         weight = np.ones_like(label, np.float32)
     else:
+        label = (label != 0).astype(int)
         if mask is None:
             weight_factor = float(label.sum()) / np.prod(label.shape)
         else:
@@ -218,10 +221,7 @@ def weight_binary_ratio(label, mask=None, alpha=1.0, return_factor=False):
         if mask is not None:
             weight = weight*mask
 
-    if return_factor: 
-        return weight_factor, weight
-    else:
-        return weight
+    return weight.astype(np.float32)
 
 def weight_unet3d(seg, w0=10, sigma=5):
     out = np.zeros_like(seg)
