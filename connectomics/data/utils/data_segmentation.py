@@ -1,8 +1,6 @@
 import numpy as np
-from scipy.sparse import coo_matrix
-from scipy.ndimage.morphology import binary_erosion, binary_dilation
-from skimage.morphology import erosion, dilation
-from skimage.measure import label as label_cc # avoid namespace conflict
+from scipy.ndimage.morphology import binary_dilation
+from skimage.measure import label as label_cc  # avoid namespace conflict
 from skimage.segmentation import find_boundaries
 
 from .data_affinity import make_2d_nhood, seg_to_aff
@@ -20,9 +18,9 @@ def getSegType(mid):
 
 def relabel(seg, do_type=False):
     # get the unique labels
-    uid = np.unique(seg)
+    uid = np.unique(seg).astype(np.int)
     # ignore all-background samples
-    if len(uid)==1 and uid[0] == 0:
+    if len(uid) == 1 and uid[0] == 0:
         return seg
 
     uid = uid[uid > 0]
@@ -33,8 +31,10 @@ def relabel(seg, do_type=False):
     if do_type:
         m_type = getSegType(mid)
     mapping = np.zeros(mid, dtype=m_type)
+
     mapping[uid] = np.arange(1, len(uid) + 1, dtype=m_type)
-    return mapping[seg]
+    print(seg)
+    return seg
 
 def remove_small(seg, thres=100):                                                                    
     sz = seg.shape                                                                                   
@@ -51,48 +51,51 @@ def im2col(A, BSZ, stepsize=1):
     # Get offsetted indices across the height and width of input array
     offset_idx = np.arange(BSZ[0])[:,None]*N + np.arange(BSZ[1])
     # Get all actual indices & index into input array for final output
-    return np.take(A,start_idx.ravel()[:,None] + offset_idx.ravel())
+    return np.take(A, start_idx.ravel()[:, None] + offset_idx.ravel())
 
 def seg_widen_border(seg, tsz_h=1):
     # Kisuk Lee's thesis (A.1.4) 
-    # we preprocessed the ground truth seg such that any voxel centered on a 3 × 3 × 1 window containing more than one positive segment ID (zero is reserved for background) is marked as background
+    # we preprocessed the ground truth seg such that any voxel centered on a 3 × 3 × 1 window containing more
+    # than one positive segment ID (zero is reserved for background) is marked as background
     # seg=0: background
     tsz = 2*tsz_h+1
     sz = seg.shape
-    if len(sz)==3:
+    if len(sz) == 3:
         for z in range(sz[0]):
             mm = seg[z].max()
-            patch = im2col(np.pad(seg[z],((tsz_h,tsz_h),(tsz_h,tsz_h)),'reflect'),[tsz,tsz])
-            p0=patch.max(axis=1)
-            patch[patch==0] = mm+1
-            p1=patch.min(axis=1)
-            seg[z] =seg[z]*((p0==p1).reshape(sz[1:]))
+            patch = im2col(np.pad(seg[z], ((tsz_h,tsz_h), (tsz_h,tsz_h)), 'reflect'), [tsz, tsz])
+            p0 = patch.max(axis=1)
+            patch[patch == 0] = mm+1
+            p1 = patch.min(axis=1)
+            seg[z] = seg[z]*((p0 == p1).reshape(sz[1:]))
     else:
         mm = seg.max()
-        patch = im2col(np.pad(seg,((tsz_h,tsz_h),(tsz_h,tsz_h)),'reflect'),[tsz,tsz])
-        p0=patch.max(axis=1)
-        patch[patch==0] = mm+1
-        p1=patch.min(axis=1)
-        seg =seg*((p0==p1).reshape(sz[1:]))
+        patch = im2col(np.pad(seg, ((tsz_h,tsz_h), (tsz_h,tsz_h)), 'reflect'), [tsz, tsz])
+        p0 = patch.max(axis=1)
+        patch[patch == 0] = mm+1
+        p1 = patch.min(axis=1)
+        seg = seg * ((p0 == p1).reshape(sz[1:]))
     return seg
 
-def seg_to_small_seg(seg,thres=25,rr=2):
+def seg_to_small_seg(seg, thres=25,rr=2):
     # rr: z/x-y resolution ratio
     sz = seg.shape
     mask = np.zeros(sz,np.uint8)
-    for z in np.where(seg.max(axis=1).max(axis=1)>0)[0]:
+    for z in np.where(seg.max(axis=1).max(axis=1) > 0)[0]:
         tmp = label_cc(seg[z])
         ui,uc = np.unique(tmp,return_counts=True)
-        rl = np.zeros(ui[-1]+1,np.uint8)
-        rl[ui[uc<thres]]=1;rl[0]=0
+        rl = np.zeros(ui[-1]+1, np.uint8)
+        rl[ui[uc < thres]] = 1
+        rl[0] = 0
         mask[z] += rl[tmp]
     for y in np.where(seg.max(axis=2).max(axis=0)>0)[0]:
         tmp = label_cc(seg[:,y])
         ui,uc = np.unique(tmp,return_counts=True)
         rl = np.zeros(ui[-1]+1,np.uint8)
-        rl[ui[uc<thres//rr]]=1;rl[0]=0
-        mask[:,y] += rl[tmp]
-    for x in np.where(seg.max(axis=0).max(axis=0)>0)[0]:
+        rl[ui[uc < thres//rr]] = 1
+        rl[0] = 0
+        mask[:, y] += rl[tmp]
+    for x in np.where(seg.max(axis=0).max(axis=0) > 0)[0]:
         tmp = label_cc(seg[:,:,x])
         ui,uc = np.unique(tmp,return_counts=True)
         rl = np.zeros(ui[-1]+1,np.uint8)
@@ -124,16 +127,16 @@ def markInvalid(seg, iter_num=2, do_2d=True):
         stel=np.array([[1,1,1], [1,1,1]]).astype(bool)
         if len(seg.shape)==2:
             out = binary_dilation(seg>0, structure=stel, iterations=iter_num)
-            seg[out==0] = -1
+            seg[out == 0] = -1
         else: # save memory
             for z in range(seg.shape[0]):
                 tmp = seg[z] # by reference
                 out = binary_dilation(tmp>0, structure=stel, iterations=iter_num)
-                tmp[out==0] = -1
+                tmp[out == 0] = -1
     else:
-        stel=np.array([[1,1,1], [1,1,1], [1,1,1]]).astype(bool)
+        stel = np.array([[1, 1, 1], [1, 1, 1], [1, 1, 1]]).astype(bool)
         out = binary_dilation(seg>0, structure=stel, iterations=iter_num)
-        seg[out==0] = -1
+        seg[out == 0] = -1
     return seg
 
 def seg_to_weights(targets, wopts, mask=None):
