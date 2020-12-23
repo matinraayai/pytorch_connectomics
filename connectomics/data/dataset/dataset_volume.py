@@ -259,8 +259,8 @@ class VolumeDataset(torch.utils.data.Dataset):
     def _random_sampling(self, vol_size):
         pos = self._get_pos_train(vol_size)
         out_volume = (crop_volume(self.volume[pos[0]], vol_size, pos[1:])/255.0).astype(np.float32)
-        # position in the label 
-        pos_l = np.round(pos[1:]*self.label_vol_ratio)
+        # position in the label
+        pos_l = np.round(pos[1:]) * self.label_vol_ratio
         out_label = crop_volume(self.label[pos[0]], self.sample_label_size, pos_l)
 
         # The option of generating valid masks has been deprecated.
