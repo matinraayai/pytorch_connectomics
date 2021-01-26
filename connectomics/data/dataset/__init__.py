@@ -56,9 +56,9 @@ def _get_input(cfg, mode='train'):
         print(f"volume shape (after scaling and padding): {volume[i].shape}")
 
         if mode=='train' and label is not None:
-            label[i] = readvol(label_name[i])
+            label[i] = read_volume(label_name[i])
             if cfg.DATASET.LABEL_VAST:
-                label[i] = vast2Seg(label[i])
+                label[i] = vast_to_seg(label[i])
             if label[i].ndim == 2: # make it into 3D volume
                 label[i] = label[i][None,:]
             if (np.array(cfg.DATASET.DATA_SCALE)!=1).any():
@@ -78,7 +78,7 @@ def _get_input(cfg, mode='train'):
             print(f"label shape: {label[i].shape}")
 
         if mode=='train' and valid_mask is not None:
-            valid_mask[i] = readvol(valid_mask_name[i])
+            valid_mask[i] = read_volume(valid_mask_name[i])
             if (np.array(cfg.DATASET.DATA_SCALE)!=1).any():
                 valid_mask[i] = zoom(valid_mask[i], cfg.DATASET.DATA_SCALE, order=0) 
 

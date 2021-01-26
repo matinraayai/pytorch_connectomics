@@ -5,6 +5,7 @@ from skimage.segmentation import find_boundaries
 
 from .data_affinity import make_2d_nhood, seg_to_aff
 
+
 # reduce the labeling
 def getSegType(mid):
     m_type = np.uint64
@@ -15,6 +16,7 @@ def getSegType(mid):
     elif mid<2**32:
         m_type = np.uint32
     return m_type
+
 
 def relabel(seg, do_type=False):
     # get the unique labels
@@ -33,8 +35,8 @@ def relabel(seg, do_type=False):
     mapping = np.zeros(mid, dtype=m_type)
 
     mapping[uid] = np.arange(1, len(uid) + 1, dtype=m_type)
-    print(seg)
     return seg
+
 
 def remove_small(seg, thres=100):                                                                    
     sz = seg.shape                                                                                   
