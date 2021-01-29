@@ -82,7 +82,8 @@ class VolumeDataset(torch.utils.data.Dataset):
         self.sample_volume_size = np.array(sample_volume_size).astype(int)  # model input size
         if self.label is not None: 
             self.sample_label_size = np.array(sample_label_size).astype(int)  # model label size
-            assert np.array_equal(self.augmentor.sample_size, self.sample_label_size)
+            if self.mode == 'train':
+                assert np.array_equal(self.augmentor.sample_size, self.sample_label_size)
             self.label_vol_ratio = self.sample_label_size / self.sample_volume_size
 
         # compute number of samples for each dataset (multi-volume input)
